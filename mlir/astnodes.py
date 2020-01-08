@@ -13,6 +13,11 @@ class Node(object):
     _fields_: List[str] = []
 
     def __init__(self, node: Token = None, **fields):
+        # Set each field separately
+        if node is not None and isinstance(node, list):
+            for fname, fval in zip(self._fields_, node):
+                setattr(self, fname, fval)
+
         # Set the defined fields
         for k, v in fields.items():
             setattr(self, k, v)
@@ -36,6 +41,11 @@ class Node(object):
         """
         return '<UNIMPLEMENTED>'
 
+    def __repr__(self):
+        return (type(self).__name__ + '(' +
+                ', '.join(f + '=' + str(getattr(self, f))
+                          for f in self._fields_) +
+                ')')
 
 ##############################################################################
 # Identifiers
@@ -85,6 +95,16 @@ class Type(Node):
 class Dimension(Type):
     _fields_ = ['value']
 
+    def __init__(self, node: Token = None, **fields):
+        self.value = None
+        try:
+            if isinstance(node[0], int):
+                self.value = node[0]
+        except (IndexError, TypeError):
+            pass  # In case of an unknown size
+
+        super().__init__(None, **fields)
+
     def dump(self) -> str:
         return str(self.value or '?')
 
@@ -103,6 +123,11 @@ class FloatTypeEnum(Enum):
 
 class FloatType(Type):
     _fields_ = ['type']
+
+    def __init__(self, node: Token = None, **fields):
+        super().__init__(node, **fields)
+        if 'type' not in fields:
+            self.type = FloatTypeEnum[node[0]]
 
     def dump(self) -> str:
         return self.type.name

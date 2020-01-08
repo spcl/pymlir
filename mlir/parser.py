@@ -84,7 +84,9 @@ def parse_string(code: str,
     parser = Lark(parser_src, parser='earley')
 
     # Parse code and return result
-    return parser.parse(code)
+    from mlir.parser_transformer import TreeToMlir
+    xform = TreeToMlir()
+    return xform.transform(parser.parse(code))
 
 
 def parse_file(file: TextIO,
