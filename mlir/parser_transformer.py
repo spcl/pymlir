@@ -28,7 +28,7 @@ class TreeToMlir(Transformer):
 
     @v_args(inline=True)
     def string_literal(self, s):
-        return s[1:-1].replace('\\"', '"')
+        return astnodes.StringLiteral(s[1:-1].replace('\\"', '"'))
 
     @v_args(inline=True)
     def bare_id(self, *s):
@@ -68,15 +68,47 @@ class TreeToMlir(Transformer):
     opaque_dialect_item = astnodes.OpaqueDialectType
     pretty_dialect_item = astnodes.PrettyDialectType
     function_type = astnodes.FunctionType
+    strided_layout = astnodes.StridedLayout
 
     ###############################################################
-    # TODO: MLIR Attributes
+    # MLIR Attributes
+
+    array_attribute = astnodes.ArrayAttr
+    bool_attribute = astnodes.BoolAttr
+    dictionary_attribute = astnodes.DictionaryAttr
+    dense_elements_attribute = astnodes.DenseElementsAttr
+    opaque_elements_attribute = astnodes.OpaqueElementsAttr
+    sparse_elements_attribute = astnodes.SparseElementsAttr
+    float_attribute = astnodes.FloatAttr
+    integer_attribute = astnodes.IntegerAttr
+    integer_set_attribute = astnodes.IntSetAttr
+    string_attribute = astnodes.StringAttr
+    symbol_ref_attribute = astnodes.SymbolRefAttr
+    type_attribute = astnodes.TypeAttr
+    unit_attribute = astnodes.UnitAttr
+
+    def attribute_dict(self, items):
+        return {item.children[0]: item.children[1] for item in items}
 
     ###############################################################
-    # TODO: Operations
+    # Operations
+
+    op_result = astnodes.OpResult
+    location = astnodes.FileLineColLoc
+
+    operation = astnodes.Operation
+    generic_operation = astnodes.GenericOperation
+    custom_operation = astnodes.CustomOperation
 
     ###############################################################
-    # TODO: Blocks, regions, modules, functions
+    # Blocks, regions, modules, functions
+
+    block_label = astnodes.BlockLabel
+    block = astnodes.Block
+    region = list
+    module = astnodes.Module
+    function = astnodes.Function
+    named_argument = astnodes.NamedArgument
 
     ###############################################################
     # TODO: (semi-)Affine expressions, maps, and integer sets
@@ -92,8 +124,7 @@ class TreeToMlir(Transformer):
     ssa_use_list = list
     op_result_list = list
     successor_list = list
-    region_list = list
-    argument_list = list
+    function_body = list
     ssa_id_and_type_list = list
     block_arg_list = list
     ssa_use_and_type_list = list
@@ -117,14 +148,12 @@ class TreeToMlir(Transformer):
     vector_element_type = lambda self, value: value[0]
     tensor_memref_element_type = lambda self, value: value[0]
     tensor_type = lambda self, value: value[0]
-    layout_specification = lambda self, value: value[0]
-    memory_space = lambda self, value: value[0]
     memref_type = lambda self, value: value[0]
     standard_type = lambda self, value: value[0]
     dialect_type = lambda self, value: value[0]
     non_function_type = lambda self, value: value[0]
     type = lambda self, value: value[0]
-    type_list_parens = lambda self, value: value[0]
+    type_list_parens = lambda self, value: (value[0] if value else [])
     function_result_type = lambda self, value: value[0]
     standard_attribute = lambda self, value: value[0]
     attribute_value = lambda self, value: value[0]
@@ -132,13 +161,11 @@ class TreeToMlir(Transformer):
     attribute_entry = lambda self, value: value[0]
     trailing_type = lambda self, value: value[0]
     trailing_location = lambda self, value: value[0]
-    function_result_list = lambda self, value: value[0]
     function_result_list_parens = lambda self, value: value[0]
     symbol_or_const = lambda self, value: value[0]
     affine_map = lambda self, value: value[0]
     semi_affine_map = lambda self, value: value[0]
     integer_set = lambda self, value: value[0]
-    #region = list # It's not pretty
 
     # Dialect ops and types
     pymlir_dialect_ops = lambda self, value: value[0].children[0]

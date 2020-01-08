@@ -47,6 +47,35 @@ class Node(object):
                           for f in self._fields_) +
                 ')')
 
+    def pretty(self):
+        return self.dump()
+        # result = self.dump_ast()
+        # lines = ['']
+        # indent = 0
+        # for char in result:
+        #     if char == '[':
+        #         indent += 1
+        #     if char == ']':
+        #         indent -= 1
+        #     if char != '\n':
+        #         lines[-1] += char
+        #     if char in '[\n':
+        #         lines.append(indent * '  ')
+        #
+        # return '\n'.join(lines)
+
+
+class StringLiteral(object):
+    def __init__(self, value: str):
+        self.value = value
+
+    def __str__(self):
+        return '"%s"' % self.value
+
+    def __repr__(self):
+        return '"%s"' % self.value
+
+
 ##############################################################################
 # Identifiers
 
@@ -155,6 +184,10 @@ class ComplexType(Type):
 class TupleType(Type):
     _fields_ = ['types']
 
+    def __init__(self, node: Token = None, **fields):
+        self.types = node
+        super().__init__(None, **fields)
+
     def dump(self) -> str:
         return 'tuple<%s>' % (', '.join(t.dump() for t in self.types))
 
@@ -163,7 +196,7 @@ class VectorType(Type):
     _fields_ = ['dimensions', 'element_type']
 
     def dump(self) -> str:
-        return 'vector<%s>' % ('x'.join(t.dump() for t in self.dimensions) +
+        return 'vector<%s>' % ('x'.join(_dump_or_value(t) for t in self.dimensions) +
                                'x' + self.element_type.dump())
 
 
@@ -178,6 +211,10 @@ class RankedTensorType(Type):
 class UnrankedTensorType(Type):
     _fields_ = ['element_type']
 
+    def __init__(self, node: Token = None, **fields):
+        # Ignore unranked dimension list
+        super().__init__(node[1:], **fields)
+
     def dump(self) -> str:
         return 'tensor<*x%s>' % self.element_type.dump()
 
@@ -185,13 +222,26 @@ class UnrankedTensorType(Type):
 class RankedMemRefType(Type):
     _fields_ = ['dimensions', 'element_type', 'layout', 'space']
 
+    def __init__(self, node: Token = None, **fields):
+        self.dimensions = node[0]
+        self.element_type = node[1]
+        self.layout = None
+        self.space = None
+        if len(node) > 2:
+            if node[2].data == 'memory_space':
+                self.space = node[2].children[0]
+            elif node[2].data == 'layout_specification':
+                self.layout = node[2].children[0]
+
+        super().__init__(None, **fields)
+
     def dump(self) -> str:
         result = 'memref<%s' % ('x'.join(t.dump() for t in self.dimensions) +
                                 'x' + self.element_type.dump())
         if self.layout is not None:
             result += ', ' + self.layout.dump()
         if self.space is not None:
-            result += ', ' + self.space.dump()
+            result += ', ' + _dump_or_value(self.space)
 
         return result + '>'
 
@@ -199,10 +249,18 @@ class RankedMemRefType(Type):
 class UnrankedMemRefType(Type):
     _fields_ = ['element_type', 'space']
 
+    def __init__(self, node: Token = None, **fields):
+        self.element_type = node[0]
+        self.space = None
+        if len(node) > 1:
+            self.space = node[1].children[0]
+
+        super().__init__(None, **fields)
+
     def dump(self) -> str:
         result = 'memref<%s' % ('*x' + self.element_type.dump())
         if self.space is not None:
-            result += ', ' + self.space.dump()
+            result += ', ' + _dump_or_value(self.space)
 
         return result + '>'
 
@@ -230,6 +288,13 @@ class FunctionType(Type):
                              _dump_or_value(self.result_types))
 
 
+class StridedLayout(Node):
+    _fields_ = ['offset', 'strides']
+
+    def dump(self) -> str:
+        return 'offset: %s, strides: %s' % (_dump_or_value(self.offset),
+                                            _dump_or_value(self.strides))
+
 ##############################################################################
 # Attributes
 
@@ -242,24 +307,19 @@ class Attribute(Node):
 
 
 class ArrayAttr(Attribute):
-    _fields_ = ['values']
-
-    def dump(self) -> str:
-        return _dump_or_value(self.values)
+    def __init__(self, node: Token = None, **fields):
+        self.value = node
+        super().__init__(None, **fields)
 
 
 class BoolAttr(Attribute):
-    _fields_ = ['value']
-
-    def dump(self) -> str:
-        return _dump_or_value(self.value)
+    pass
 
 
 class DictionaryAttr(Attribute):
-    _fields_ = ['values']
-
-    def dump(self) -> str:
-        return _dump_or_value(self.values)
+    def __init__(self, node: Token = None, **fields):
+        self.value = {n.children[0]: n.children[1] for n in node}
+        super().__init__(None, **fields)
 
 
 class ElementsAttr(Attribute):
@@ -294,6 +354,15 @@ class SparseElementsAttr(ElementsAttr):
 class PrimitiveAttribute(Attribute):
     _fields_ = ['value', 'type']
 
+    def __init__(self, node: Token = None, **fields):
+        self.value = node[0]
+        if len(node) > 1:
+            self.type = node[1]
+        else:
+            self.type = None
+
+        super().__init__(None, **fields)
+
     def dump(self) -> str:
         return _dump_or_value(self.value) + (': %s' % self.type.dump()
                                              if self.type is not None else '')
@@ -322,11 +391,17 @@ class TypeAttr(Attribute):
 class SymbolRefAttr(Attribute):
     _fields_ = ['path']
 
+    def __init__(self, node: Token = None, **fields):
+        self.path = node
+        super().__init__(None, **fields)
+
     def dump(self) -> str:
         return '::'.join(_dump_or_value(p) for p in self.path)
 
 
 class UnitAttr(Attribute):
+    _fields_ = []
+
     def dump(self) -> str:
         return 'unit'
 
@@ -334,20 +409,112 @@ class UnitAttr(Attribute):
 ##############################################################################
 # Operations
 
+class OpResult(Node):
+    _fields_ = ['value', 'count']
+
+    def __init__(self, node: Token = None, **fields):
+        self.value = node[0]
+        if len(node) > 1:
+            self.count = node[1]
+        else:
+            self.count = None
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        return self.value.dump() + ((':' + _dump_or_value(self.count))
+                                    if self.count else '')
+
+
 class Operation(Node):
-    _fields_ = ['result_list', 'op', 'args', 'attributes', 'type', 'location']
+    _fields_ = ['result_list', 'op', 'location']
+
+    def __init__(self, node: Token = None, **fields):
+        index = 0
+        if isinstance(node[0], list):
+            self.result_list = node[index]
+            index += 1
+        else:
+            self.result_list = []
+        self.op = node[index]
+        index += 1
+        if len(node) > index:
+            self.location = node[2]
+        else:
+            self.location = None
+
+        super().__init__(None, **fields)
 
     def dump(self) -> str:
         result = ''
         if self.result_list:
-            result += '%s =' % _dump_or_value(self.result_list)
+            result += '%s = ' % (', '.join(_dump_or_value(r)
+                                          for r in self.result_list))
         result += _dump_or_value(self.op)
-        result += '(%s)' % ', '.join(_dump_or_value(arg) for arg in self.args)
-        if self.attributes:
-            result += _dump_or_value(self.attributes)
-        result += ' : ' + self.type.dump()
         if self.location:
             result += ' ' + self.location.dump()
+        return result
+
+
+class Op(Node):
+    pass
+
+
+class GenericOperation(Op):
+    _fields_ = ['name', 'args', 'attributes', 'type']
+
+    def __init__(self, node: Token = None, **fields):
+        index = 0
+        self.name = node[index]
+        index += 1
+        if len(node) > index and isinstance(node[index], list):
+            self.args = node[index]
+            index += 1
+        else:
+            self.args = []
+        if len(node) > index and isinstance(node[index], dict):
+            self.attributes = node[index]
+            index += 1
+        else:
+            self.attributes = None
+        if len(node) > index:
+            self.type = node[index]
+        else:
+            self.type = None
+
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        result = '%s' % self.name
+        result += '(%s)' % ', '.join(_dump_or_value(arg) for arg in self.args)
+        if self.attributes:
+            result += ' ' + _dump_or_value(self.attributes)
+        result += ' : ' + _dump_or_value(self.type)
+        return result
+
+
+class CustomOperation(Op):
+    _fields_ = ['namespace', 'name', 'args', 'type']
+
+    def __init__(self, node: Token = None, **fields):
+        self.namespace = node[0]
+        self.name = node[1]
+        if len(node) == 4:
+            self.args = node[2]
+            self.type = node[3]
+        else:
+            self.args = None
+            self.type = node[2]
+
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        result = '%s.%s' % (self.namespace, self.name)
+        if self.args:
+            result += ' %s' % ', '.join(_dump_or_value(arg)
+                                        for arg in self.args)
+        result += ' : ' + self.type.dump()
+        return result
+
 
 class Location(Node):
     _fields_ = ['value']
@@ -360,7 +527,7 @@ class FileLineColLoc(Location):
     _fields_ = ['file', 'line', 'col']
 
     def dump(self) -> str:
-        return 'loc("%s":%d:%d)' % (self.file, self.line, self.col)
+        return 'loc(%s:%d:%d)' % (self.file, self.line, self.col)
 
 
 ##############################################################################
@@ -368,6 +535,27 @@ class FileLineColLoc(Location):
 
 class Module(Node):
     _fields_ = ['name', 'attributes', 'body', 'location']
+
+    def __init__(self, node: Token = None, **fields):
+        index = 0
+        if len(node) > index and isinstance(node[index], SymbolRefId):
+            self.name = node[index]
+            index += 1
+        else:
+            self.name = None
+        if len(node) > index and isinstance(node[index], dict):
+            self.attributes = node[index]
+            index += 1
+        else:
+            self.attributes = None
+        self.body = node[index].children
+        index += 1
+        if len(node) > index:
+            self.location = node[index]
+        else:
+            self.location = None
+
+        super().__init__(None, **fields)
 
     def dump(self, indent=0) -> str:
         result = indent*'  ' + 'module'
@@ -381,11 +569,49 @@ class Module(Node):
         result += '\n' + indent*'  ' + '}'
         if self.location:
             result += ' ' + self.location.dump()
+        return result
 
 
 class Function(Node):
     _fields_ = ['name', 'args', 'result_types', 'attributes', 'body',
                 'location']
+
+    def __init__(self, node: Token = None, **fields):
+        signature = node[0].children
+        # Parse signature
+        index = 0
+        self.name = signature[index]
+        index += 1
+        if len(signature) > index and signature[index].data == 'argument_list':
+            self.args = signature[index].children
+            index += 1
+        else:
+            self.args = []
+        if (len(signature) > index and
+                signature[index].data == 'function_result_list'):
+            self.result_types = signature[index].children
+            index += 1
+        else:
+            self.result_types = []
+
+        # Parse rest of function
+        index = 1
+        if len(node) > index and isinstance(node[index], dict):
+            self.attributes = node[index]
+            index += 1
+        else:
+            self.attributes = None
+        if len(node) > index and isinstance(node[index], list):
+            self.body = node[index]
+            index += 1
+        else:
+            self.body = []
+        if len(node) > index:
+            self.location = node[index]
+        else:
+            self.location = None
+
+        super().__init__(None, **fields)
 
     def dump(self, indent=0) -> str:
         result = indent*'  ' + 'func'
@@ -397,20 +623,74 @@ class Function(Node):
             result += ' attributes ' + _dump_or_value(self.attributes)
 
         result += ' {\n'
-        result += '\n'.join(block.dump(indent + 1) for block in self.body)
+        result += '\n'.join(block.dump(indent + 1) for region in self.body
+                            for block in region)
         result += '\n' + indent*'  ' + '}'
         if self.location:
             result += ' ' + self.location.dump()
+        return result
 
 
 class Block(Node):
     _fields_ = ['label', 'body']
+
+    def __init__(self, node: Token = None, **fields):
+        index = 0
+        if len(node) > index and isinstance(node[index], BlockLabel):
+            self.label = node[index]
+            index += 1
+        else:
+            self.label = None
+        if len(node) > index:
+            self.body = node[index:]
+        else:
+            self.body = []
+
+        super().__init__(None, **fields)
 
     def dump(self, indent=0) -> str:
         result = ''
         if self.label:
             result += indent*'  ' + self.label.dump()
         result += '\n'.join(indent*'  ' + stmt.dump() for stmt in self.body)
+        return result
+
+class BlockLabel(Node):
+    _fields_ = ['name', 'args']
+
+    def __init__(self, node: Token = None, **fields):
+        self.name = node[0]
+        if len(node) > 1:
+            self.args = node[1]
+        else:
+            self.args = []
+
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        result = _dump_or_value(self.name)
+        if self.args:
+            result += ' (%s)' % (', '.join(_dump_or_value(arg)
+                                           for arg in self.args))
+        result += ':\n'
+        return result
+
+
+class NamedArgument(Node):
+    _fields_ = ['name', 'type', 'attributes']
+
+    def __init__(self, node: Token = None, **fields):
+        self.name = node[0]
+        self.type = node[1]
+        self.attributes = node[2] if len(node) > 2 else None
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        result = '%s: %s' % (_dump_or_value(self.name),
+                              _dump_or_value(self.type))
+        if self.attributes:
+            result += ' %s' % _dump_or_value(self.attributes)
+        return result
 
 
 ##############################################################################
@@ -504,7 +784,6 @@ def _dump_ast_or_value(value: Any, python=True) -> str:
         return '{%s}' % ', '.join(
             '%s%s%s' % (_dump_ast_or_value(k, python), sep,
                         _dump_ast_or_value(v, python)) for k, v in value.items())
-
     return str(value)
 
 

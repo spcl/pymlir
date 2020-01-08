@@ -166,7 +166,7 @@ location : string_literal ":" decimal_literal ":" decimal_literal
 trailing_location : ("loc" "(" location ")")
 
 // Undefined operations in all dialects
-generic_operation : (string_literal|bare_id) "(" ssa_use_list? ")" attribute_dict? trailing_type
+generic_operation : string_literal "(" ssa_use_list? ")" attribute_dict? trailing_type
 custom_operation  : bare_id "." bare_id ssa_use_list? trailing_type
 
 // Final operation definition
@@ -205,7 +205,7 @@ function_body : region
 
 // Definition
 module : "module" symbol_ref_id? ("attributes" attribute_dict)? module_body trailing_location?
-function : "func" function_signature ("attributes" attribute_dict)? function_body?  trailing_location?
+function : "func" function_signature ("attributes" attribute_dict)? function_body? trailing_location?
 
 // ----------------------------------------------------------------------
 // (semi-)affine expressions, maps, and integer sets
