@@ -1,0 +1,15 @@
+// Affine dialect. Adapted from:
+// https://github.com/llvm/llvm-project/blob/5b4a01d4a63cb66ab981e52548f940813393bf42/mlir/docs/Dialects/Affine.md
+
+affine_loop_step: "step" symbol_or_const
+affine_for_stmt : ssa_id "=" symbol_or_const "to" symbol_or_const loop_step? region
+affine_for : "affine.for" affine_for_stmt
+affine_if : "affine.if" (map_or_set_id "(" ssa_use_list ")" "[" ssa_use_list "]") region ("else" region)?
+
+dpar: semi_affine_expr
+dma_param: ssa_id ("[" dpar ("," dpar)* "]")?
+affine_dma_start : "affine.dma_start" dma_param ("," dma_param)* trailing_type
+affine_dma_wait : "affine.dma_wait" dma_param ("," dma_param)* trailing_type
+
+affine_dialect_operations: affine_for | affine_dma_start | affine_dma_wait | affine_if
+affine_dialect_types:
