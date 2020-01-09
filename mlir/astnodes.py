@@ -284,8 +284,17 @@ class FunctionType(Type):
     _fields_ = ['argument_types', 'result_types']
 
     def dump(self) -> str:
-        return '%s -> %s' % (_dump_or_value(self.argument_types),
-                             _dump_or_value(self.result_types))
+        result = '(%s)' % ', '.join(_dump_or_value(arg)
+                                    for arg in self.argument_types)
+        result += ' -> '
+        if not self.result_types:
+            result += '()'
+        elif len(self.result_types) == 1:
+            result += _dump_or_value(self.result_types[0])
+        else:
+            result += '(%s)' % ', '.join(_dump_or_value(res)
+                                         for res in self.result_types)
+        return result
 
 
 class StridedLayout(Node):
@@ -488,7 +497,10 @@ class GenericOperation(Op):
         result += '(%s)' % ', '.join(_dump_or_value(arg) for arg in self.args)
         if self.attributes:
             result += ' ' + _dump_or_value(self.attributes)
-        result += ' : ' + _dump_or_value(self.type)
+        if isinstance(self.type, list):
+            result += ' : ' + ', '.join(_dump_or_value(t) for t in self.type)
+        else:
+            result += ' : ' + _dump_or_value(self.type)
         return result
 
 
@@ -512,7 +524,11 @@ class CustomOperation(Op):
         if self.args:
             result += ' %s' % ', '.join(_dump_or_value(arg)
                                         for arg in self.args)
-        result += ' : ' + self.type.dump()
+        if isinstance(self.type, list):
+            result += ' : ' + ', '.join(_dump_or_value(t) for t in self.type)
+        else:
+            result += ' : ' + _dump_or_value(self.type)
+
         return result
 
 
@@ -618,7 +634,11 @@ class Function(Node):
         result += ' %s' % self.name.dump()
         result += '(%s)' % ', '.join(_dump_or_value(arg) for arg in self.args)
         if self.result_types:
-            result += ' -> ' + _dump_or_value(self.result_types)
+            if len(self.result_types) == 1:
+                result += ' -> ' + _dump_or_value(self.result_types[0])
+            else:
+                result += ' -> (%s)' % ', '.join(_dump_or_value(res)
+                                                 for res in self.result_types)
         if self.attributes:
             result += ' attributes ' + _dump_or_value(self.attributes)
 
@@ -654,6 +674,7 @@ class Block(Node):
             result += indent*'  ' + self.label.dump()
         result += '\n'.join(indent*'  ' + stmt.dump() for stmt in self.body)
         return result
+
 
 class BlockLabel(Node):
     _fields_ = ['name', 'args']
