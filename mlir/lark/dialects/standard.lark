@@ -45,6 +45,7 @@ constant_operation : "constant" attribute_value ":" type
 copysign_operation : "copysign" ssa_use ":" type
 divis_operation : "divis" ssa_use "," ssa_use ":" type
 diviu_operation : "diviu" ssa_use "," ssa_use ":" type
+divf_operation : "divf" ssa_use "," ssa_use ":" type
 memref_cast_operation : "memref_cast" ssa_use ":" type "to" type
 mulf_operation : "mulf" ssa_use "," ssa_use ":" type
 subf_operation : "subf" ssa_use "," ssa_use ":" type
@@ -91,6 +92,7 @@ standard_dialect_operations : br_operation
                             | copysign_operation
                             | divis_operation
                             | diviu_operation
+                            | divf_operation
                             | memref_cast_operation
                             | mulf_operation
                             | subf_operation
