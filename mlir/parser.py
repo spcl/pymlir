@@ -1,7 +1,7 @@
 """ Contains classes that parse MLIR files """
 
 import itertools
-from lark import Lark, Transformer, v_args
+from lark import Lark, Tree
 import os
 import sys
 from typing import List, Optional, TextIO
@@ -42,7 +42,7 @@ def _lazy_load():
 
 
 def parse_string(code: str,
-                 dialects: Optional[List[Dialect]] = None) -> mast.Node:
+                 dialects: Optional[List[Dialect]] = None) -> mast.Module:
     """
     Parses a string representing code in MLIR, returning the top-level AST node.
     :param code: A code string in MLIR format.
@@ -85,8 +85,16 @@ def parse_string(code: str,
 
     # Parse code and return result
     from mlir.parser_transformer import TreeToMlir
-    xform = TreeToMlir()
-    return xform.transform(parser.parse(code))
+    transformer = TreeToMlir()
+    root_node = transformer.transform(parser.parse(code))
+
+    # If the root node is a function/definition or a list thereof, return
+    # a top-level module
+    if not isinstance(root_node, mast.Module):
+        if isinstance(root_node, Tree) and root_node.data == 'start':
+            return mast.Module([root_node])
+        return mast.Module(root_node)
+    return root_node
 
 
 def parse_file(file: TextIO,

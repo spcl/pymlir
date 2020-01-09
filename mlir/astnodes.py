@@ -2,7 +2,7 @@
     MLIR. """
 
 from enum import Enum, auto
-from typing import Any, List
+from typing import Any, List, Union
 from lark import Token
 
 
@@ -552,24 +552,30 @@ class FileLineColLoc(Location):
 class Module(Node):
     _fields_ = ['name', 'attributes', 'body', 'location']
 
-    def __init__(self, node: Token = None, **fields):
+    def __init__(self, node: Union[Token, Node] = None, **fields):
         index = 0
-        if len(node) > index and isinstance(node[index], SymbolRefId):
-            self.name = node[index]
-            index += 1
-        else:
+        if isinstance(node, Node):
             self.name = None
-        if len(node) > index and isinstance(node[index], dict):
-            self.attributes = node[index]
-            index += 1
-        else:
             self.attributes = None
-        self.body = node[index].children
-        index += 1
-        if len(node) > index:
-            self.location = node[index]
-        else:
+            self.body = [node]
             self.location = None
+        else:
+            if len(node) > index and isinstance(node[index], SymbolRefId):
+                self.name = node[index]
+                index += 1
+            else:
+                self.name = None
+            if len(node) > index and isinstance(node[index], dict):
+                self.attributes = node[index]
+                index += 1
+            else:
+                self.attributes = None
+            self.body = node[index].children
+            index += 1
+            if len(node) > index:
+                self.location = node[index]
+            else:
+                self.location = None
 
         super().__init__(None, **fields)
 

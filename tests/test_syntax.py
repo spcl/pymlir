@@ -83,9 +83,37 @@ def test_functions():
     print(module.pretty())
 
 
+def test_toplevel_function():
+    code = '''
+    func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
+      %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
+      return %t_tensor : tensor<3x2xf64>
+    }'''
+
+    module = parse_string(code)
+    print(module.pretty())
+
+
+def test_toplevel_functions():
+    code = '''
+    func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
+      %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
+      return %t_tensor : tensor<3x2xf64>
+    }
+    func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
+      %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
+      return %t_tensor : tensor<3x2xf64>
+    }'''
+
+    module = parse_string(code)
+    print(module.pretty())
+
+
 if __name__ == '__main__':
     test_attributes()
     test_memrefs()
     test_trailing_loc()
     test_modules()
     test_functions()
+    test_toplevel_function()
+    test_toplevel_functions()
