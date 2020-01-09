@@ -117,7 +117,6 @@ class TreeToMlir(Transformer):
     ###############################################################
     # TODO: Top-level definitions
 
-
     ###############################################################
     # List types
     bare_id_list = list
@@ -171,4 +170,3 @@ class TreeToMlir(Transformer):
     # Dialect ops and types
     pymlir_dialect_ops = lambda self, value: value[0].children[0]
     pymlir_dialect_types = lambda self, value: value[0].children[0]
-

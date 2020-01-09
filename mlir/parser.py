@@ -25,8 +25,8 @@ def _lazy_load():
     # Lazily load the MLIR EBNF file and the dialects
     if _MLIR_LARK is None:
         # Find path to files
-        mlir_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                 'lark')
+        mlir_path = os.path.join(
+            os.path.abspath(os.path.dirname(__file__)), 'lark')
         dialects_path = os.path.join(mlir_path, 'dialects')
 
         with open(os.path.join(mlir_path, 'mlir.lark'), 'r') as fp:
@@ -38,7 +38,8 @@ def _lazy_load():
                 # Cut the last extension characters
                 dialect_name = os.path.basename(dialect)[:-5]
                 _DIALECT_LARKS.append(
-                    Dialect(os.path.join(dialects_path, dialect), dialect_name))
+                    Dialect(
+                        os.path.join(dialects_path, dialect), dialect_name))
 
 
 def parse_string(code: str,
@@ -131,6 +132,7 @@ if __name__ == '__main__':
     additional_dialects = []
     for dialect_name in sys.argv[2:]:
         additional_dialects.append(
-            Dialect(dialect_name, os.path.basename(dialect_name)[:-5]))
+            Dialect(dialect_name,
+                    os.path.basename(dialect_name)[:-5]))
 
     print(parse_path(sys.argv[1], dialects=additional_dialects).pretty())

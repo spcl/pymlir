@@ -30,10 +30,9 @@ class Node(object):
                    parsed back by Python to the same AST.
             :return: String representing the AST in its raw format.
         """
-        return (type(self).__name__ + '(' +
-                ', '.join(f + '=' + _dump_ast_or_value(getattr(self, f))
-                          for f in self._fields_) +
-                ')')
+        return (type(self).__name__ + '(' + ', '.join(
+            f + '=' + _dump_ast_or_value(getattr(self, f))
+            for f in self._fields_) + ')')
 
     def dump(self) -> str:
         """ Dumps the AST node and its children in MLIR format.
@@ -42,10 +41,8 @@ class Node(object):
         return '<UNIMPLEMENTED>'
 
     def __repr__(self):
-        return (type(self).__name__ + '(' +
-                ', '.join(f + '=' + str(getattr(self, f))
-                          for f in self._fields_) +
-                ')')
+        return (type(self).__name__ + '(' + ', '.join(
+            f + '=' + str(getattr(self, f)) for f in self._fields_) + ')')
 
     def pretty(self):
         return self.dump()
@@ -78,6 +75,7 @@ class StringLiteral(object):
 
 ##############################################################################
 # Identifiers
+
 
 class Identifier(Node):
     _fields_ = ['value']
@@ -116,6 +114,7 @@ class MapOrSetId(Identifier):
 
 ##############################################################################
 # Types
+
 
 class Type(Node):
     pass
@@ -196,8 +195,9 @@ class VectorType(Type):
     _fields_ = ['dimensions', 'element_type']
 
     def dump(self) -> str:
-        return 'vector<%s>' % ('x'.join(_dump_or_value(t) for t in self.dimensions) +
-                               'x' + self.element_type.dump())
+        return 'vector<%s>' % ('x'.join(
+            _dump_or_value(t)
+            for t in self.dimensions) + 'x' + self.element_type.dump())
 
 
 class RankedTensorType(Type):
@@ -284,16 +284,16 @@ class FunctionType(Type):
     _fields_ = ['argument_types', 'result_types']
 
     def dump(self) -> str:
-        result = '(%s)' % ', '.join(_dump_or_value(arg)
-                                    for arg in self.argument_types)
+        result = '(%s)' % ', '.join(
+            _dump_or_value(arg) for arg in self.argument_types)
         result += ' -> '
         if not self.result_types:
             result += '()'
         elif len(self.result_types) == 1:
             result += _dump_or_value(self.result_types[0])
         else:
-            result += '(%s)' % ', '.join(_dump_or_value(res)
-                                         for res in self.result_types)
+            result += '(%s)' % ', '.join(
+                _dump_or_value(res) for res in self.result_types)
         return result
 
 
@@ -307,6 +307,7 @@ class StridedLayout(Node):
 
 ##############################################################################
 # Attributes
+
 
 # Attribute entries
 class AttributeEntry(Node):
@@ -395,18 +396,16 @@ class OpaqueElementsAttr(ElementsAttr):
     _fields_ = ['dialect', 'attribute', 'type']
 
     def dump(self) -> str:
-        return 'opaque<%s, %s> : %s' % (self.dialect,
-                                        _dump_or_value(self.attribute),
-                                        self.type.dump())
+        return 'opaque<%s, %s> : %s' % (
+            self.dialect, _dump_or_value(self.attribute), self.type.dump())
 
 
 class SparseElementsAttr(ElementsAttr):
     _fields_ = ['indices', 'values', 'type']
 
     def dump(self) -> str:
-        return 'sparse<%s, %s> : %s' % (_dump_or_value(self.indices),
-                                        _dump_or_value(self.values),
-                                        self.type.dump())
+        return 'sparse<%s, %s> : %s' % (_dump_or_value(
+            self.indices), _dump_or_value(self.values), self.type.dump())
 
 
 class PrimitiveAttribute(Attribute):
@@ -467,6 +466,7 @@ class UnitAttr(Attribute):
 ##############################################################################
 # Operations
 
+
 class OpResult(Node):
     _fields_ = ['value', 'count']
 
@@ -479,8 +479,8 @@ class OpResult(Node):
         super().__init__(None, **fields)
 
     def dump(self) -> str:
-        return self.value.dump() + ((':' + _dump_or_value(self.count))
-                                    if self.count else '')
+        return self.value.dump() + (
+            (':' + _dump_or_value(self.count)) if self.count else '')
 
 
 class Operation(Node):
@@ -505,8 +505,8 @@ class Operation(Node):
     def dump(self) -> str:
         result = ''
         if self.result_list:
-            result += '%s = ' % (', '.join(_dump_or_value(r)
-                                          for r in self.result_list))
+            result += '%s = ' % (', '.join(
+                _dump_or_value(r) for r in self.result_list))
         result += _dump_or_value(self.op)
         if self.location:
             result += ' ' + self.location.dump()
@@ -571,8 +571,8 @@ class CustomOperation(Op):
     def dump(self) -> str:
         result = '%s.%s' % (self.namespace, self.name)
         if self.args:
-            result += ' %s' % ', '.join(_dump_or_value(arg)
-                                        for arg in self.args)
+            result += ' %s' % ', '.join(
+                _dump_or_value(arg) for arg in self.args)
         if isinstance(self.type, list):
             result += ' : ' + ', '.join(_dump_or_value(t) for t in self.type)
         else:
@@ -597,6 +597,7 @@ class FileLineColLoc(Location):
 
 ##############################################################################
 # Modules, functions, and blocks
+
 
 class Module(Node):
     _fields_ = ['name', 'attributes', 'body', 'location']
@@ -629,7 +630,7 @@ class Module(Node):
         super().__init__(None, **fields)
 
     def dump(self, indent=0) -> str:
-        result = indent*'  ' + 'module'
+        result = indent * '  ' + 'module'
         if self.name:
             result += ' %s' % self.name.dump()
         if self.attributes:
@@ -637,15 +638,16 @@ class Module(Node):
 
         result += ' {\n'
         result += '\n'.join(block.dump(indent + 1) for block in self.body)
-        result += '\n' + indent*'  ' + '}'
+        result += '\n' + indent * '  ' + '}'
         if self.location:
             result += ' ' + self.location.dump()
         return result
 
 
 class Function(Node):
-    _fields_ = ['name', 'args', 'result_types', 'attributes', 'body',
-                'location']
+    _fields_ = [
+        'name', 'args', 'result_types', 'attributes', 'body', 'location'
+    ]
 
     def __init__(self, node: Token = None, **fields):
         signature = node[0].children
@@ -658,8 +660,8 @@ class Function(Node):
             index += 1
         else:
             self.args = []
-        if (len(signature) > index and
-                signature[index].data == 'function_result_list'):
+        if (len(signature) > index
+                and signature[index].data == 'function_result_list'):
             self.result_types = signature[index].children
             index += 1
         else:
@@ -685,22 +687,22 @@ class Function(Node):
         super().__init__(None, **fields)
 
     def dump(self, indent=0) -> str:
-        result = indent*'  ' + 'func'
+        result = indent * '  ' + 'func'
         result += ' %s' % self.name.dump()
         result += '(%s)' % ', '.join(_dump_or_value(arg) for arg in self.args)
         if self.result_types:
             if len(self.result_types) == 1:
                 result += ' -> ' + _dump_or_value(self.result_types[0])
             else:
-                result += ' -> (%s)' % ', '.join(_dump_or_value(res)
-                                                 for res in self.result_types)
+                result += ' -> (%s)' % ', '.join(
+                    _dump_or_value(res) for res in self.result_types)
         if self.attributes:
             result += ' attributes ' + _dump_or_value(self.attributes)
 
         result += ' {\n'
-        result += '\n'.join(block.dump(indent + 1) for region in self.body
-                            for block in region)
-        result += '\n' + indent*'  ' + '}'
+        result += '\n'.join(
+            block.dump(indent + 1) for region in self.body for block in region)
+        result += '\n' + indent * '  ' + '}'
         if self.location:
             result += ' ' + self.location.dump()
         return result
@@ -726,8 +728,8 @@ class Block(Node):
     def dump(self, indent=0) -> str:
         result = ''
         if self.label:
-            result += indent*'  ' + self.label.dump()
-        result += '\n'.join(indent*'  ' + stmt.dump() for stmt in self.body)
+            result += indent * '  ' + self.label.dump()
+        result += '\n'.join(indent * '  ' + stmt.dump() for stmt in self.body)
         return result
 
 
@@ -746,8 +748,8 @@ class BlockLabel(Node):
     def dump(self) -> str:
         result = _dump_or_value(self.name)
         if self.args:
-            result += ' (%s)' % (', '.join(_dump_or_value(arg)
-                                           for arg in self.args))
+            result += ' (%s)' % (', '.join(
+                _dump_or_value(arg) for arg in self.args))
         result += ':\n'
         return result
 
@@ -763,7 +765,7 @@ class NamedArgument(Node):
 
     def dump(self) -> str:
         result = '%s: %s' % (_dump_or_value(self.name),
-                              _dump_or_value(self.type))
+                             _dump_or_value(self.type))
         if self.attributes:
             result += ' %s' % _dump_or_value(self.attributes)
         return result
@@ -772,6 +774,7 @@ class NamedArgument(Node):
 ##############################################################################
 # (semi-)Affine expressions, maps, and integer sets
 # TODO: Implement
+
 
 class AffineExpr(Node):
     pass
@@ -809,6 +812,7 @@ class IntSet(Node):
 # Top-level definitions
 # TODO: Implement
 
+
 class Definition(Node):
     pass
 
@@ -832,6 +836,7 @@ class IntSetDef(Definition):
 ##############################################################################
 # Helpers
 
+
 def _dump_ast_or_value(value: Any, python=True) -> str:
     """ Helper function to dump the AST node type or a reconstructible
         node value.
@@ -852,14 +857,15 @@ def _dump_ast_or_value(value: Any, python=True) -> str:
     if isinstance(value, list):
         return '[%s]' % ', '.join(_dump_ast_or_value(v, python) for v in value)
     if isinstance(value, tuple):
-        return '(%s%s)' % (
-            ', '.join(_dump_ast_or_value(v, python) for v in value),
-            ', ' if python else '')
+        return '(%s%s)' % (', '.join(
+            _dump_ast_or_value(v, python)
+            for v in value), ', ' if python else '')
     if isinstance(value, dict):
         sep = ': ' if python else ' = '
         return '{%s}' % ', '.join(
-            '%s%s%s' % (_dump_ast_or_value(k, python), sep,
-                        _dump_ast_or_value(v, python)) for k, v in value.items())
+            '%s%s%s' %
+            (_dump_ast_or_value(k, python), sep, _dump_ast_or_value(v, python))
+            for k, v in value.items())
     return str(value)
 
 
@@ -867,4 +873,3 @@ def _dump_or_value(value: Any) -> str:
     """ Helper function to dump the MLIR value or a reconstructible
         node value. """
     return _dump_ast_or_value(value, python=False)
-
