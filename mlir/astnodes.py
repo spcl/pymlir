@@ -304,8 +304,54 @@ class StridedLayout(Node):
         return 'offset: %s, strides: %s' % (_dump_or_value(self.offset),
                                             _dump_or_value(self.strides))
 
+
 ##############################################################################
 # Attributes
+
+# Attribute entries
+class AttributeEntry(Node):
+    _fields_ = ['name', 'value']
+
+    def __init__(self, node: Token = None, **fields):
+        self.name = node[0]
+        self.value = node[1] if len(node) > 1 else None
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        if self.value:
+            return '%s = %s' % (_dump_or_value(self.name),
+                                _dump_or_value(self.value))
+        return _dump_or_value(self.name)
+
+
+class DialectAttributeEntry(Node):
+    _fields_ = ['dialect', 'name', 'value']
+
+    def __init__(self, node: Token = None, **fields):
+        self.dialect = node[0]
+        self.name = node[1]
+        self.value = node[2] if len(node) > 2 else None
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        if self.value:
+            return '%s.%s = %s' % (_dump_or_value(self.dialect),
+                                   _dump_or_value(self.name),
+                                   _dump_or_value(self.value))
+        return '%s.%s' % (_dump_or_value(self.dialect),
+                          _dump_or_value(self.name))
+
+
+class AttributeDict(Node):
+    _fields_ = ['values']
+
+    def __init__(self, node: Token = None, **fields):
+        self.values = node
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        return '{%s}' % ', '.join(_dump_or_value(v) for v in self.values)
+
 
 # Default attribute implementation
 class Attribute(Node):
@@ -327,8 +373,11 @@ class BoolAttr(Attribute):
 
 class DictionaryAttr(Attribute):
     def __init__(self, node: Token = None, **fields):
-        self.value = {n.children[0]: n.children[1] for n in node}
+        self.value = node
         super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        return '{%s}' % ', '.join(_dump_or_value(v) for v in self.value)
 
 
 class ElementsAttr(Attribute):
@@ -480,7 +529,7 @@ class GenericOperation(Op):
             index += 1
         else:
             self.args = []
-        if len(node) > index and isinstance(node[index], dict):
+        if len(node) > index and isinstance(node[index], AttributeDict):
             self.attributes = node[index]
             index += 1
         else:
@@ -565,7 +614,7 @@ class Module(Node):
                 index += 1
             else:
                 self.name = None
-            if len(node) > index and isinstance(node[index], dict):
+            if len(node) > index and isinstance(node[index], AttributeDict):
                 self.attributes = node[index]
                 index += 1
             else:
@@ -618,7 +667,7 @@ class Function(Node):
 
         # Parse rest of function
         index = 1
-        if len(node) > index and isinstance(node[index], dict):
+        if len(node) > index and isinstance(node[index], AttributeDict):
             self.attributes = node[index]
             index += 1
         else:

@@ -87,8 +87,9 @@ class TreeToMlir(Transformer):
     type_attribute = astnodes.TypeAttr
     unit_attribute = astnodes.UnitAttr
 
-    def attribute_dict(self, items):
-        return {item.children[0]: item.children[1] for item in items}
+    dependent_attribute_entry = astnodes.AttributeEntry
+    dialect_attribute_entry = astnodes.DialectAttributeEntry
+    attribute_dict = astnodes.AttributeDict
 
     ###############################################################
     # Operations
