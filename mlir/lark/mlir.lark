@@ -54,13 +54,7 @@ type_alias_def : type_alias "=" "type" type
 
 // Standard types
 none_type : "none"
-
-f16: "f16"
-bf16: "bf16"
-f32: "f32"
-f64: "f64"
-float_type : f16 | bf16 | f32 | f64
-
+!float_type : "f16" | "bf16" | "f32" | "f64"
 index_type : "index"
 integer_type : "i" /[1-9][0-9]*/  // Sized integers like i1, i4, i8, i16, i32.
 complex_type : "complex" "<" type ">"
