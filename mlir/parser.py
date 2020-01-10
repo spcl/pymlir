@@ -15,6 +15,72 @@ _MLIR_LARK = None
 _DIALECT_LARKS: List[Dialect] = []
 
 
+class Parser(object):
+    """
+    A reusable pyMLIR parser. Parses multiple strings faster than repeatedly
+    calling ``mlir.parse_*``.
+    """
+
+    def __init__(self, dialects: Optional[List[Dialect]] = None):
+        """
+        Initializes a reusable pyMLIR parser.
+        :param dialects: An optional list of additional dialects to load (in
+                         addition to the built-in dialects).
+        """
+        self.dialects = dialects or []
+
+        # Lazy-load (if necessary) the Lark files
+        _lazy_load()
+
+        # Check validity of given dialects
+        dialects = dialects or []
+        builtin_names = [dialect.name for dialect in _DIALECT_LARKS]
+        additional_names = [dialect.name for dialect in dialects]
+        dialect_set = set(builtin_names) | set(additional_names)
+        if len(dialect_set) != (len(dialects) + len(_DIALECT_LARKS)):
+            raise NameError(
+                'Additional dialect already exists (built-in dialects: %s, '
+                'given dialects: %s)' % (builtin_names, additional_names))
+
+        # Create a parser from the MLIR EBNF file, default dialects, and
+        # additional dialects if exist
+        parser_src = _MLIR_LARK + ''
+        op_expr = 'pymlir_dialect_ops: '
+        type_expr = 'pymlir_dialect_types: '
+        first = True
+        for dialect in itertools.chain(_DIALECT_LARKS, dialects):
+            parser_src += dialect.contents
+            if not first:
+                op_expr += '| '
+                type_expr += '| '
+            first = False
+            op_expr += dialect.name + '_dialect_operations '
+            type_expr += dialect.name + '_dialect_types '
+
+        parser_src += op_expr + '\n' + type_expr
+
+        # Create parser and tree transformer
+        self.parser = Lark(parser_src, parser='earley')
+        self.transformer = TreeToMlir()
+
+    def parse(self, code: str) -> mast.Module:
+        """
+        Parses a string representing code in MLIR, returning the top-level
+        AST node.
+            :param code: A code string in MLIR format.
+            :return: A module node representing the root of the AST.
+        """
+        root_node = self.transformer.transform(self.parser.parse(code))
+
+        # If the root node is a function/definition or a list thereof, return
+        # a top-level module
+        if not isinstance(root_node, mast.Module):
+            if isinstance(root_node, Tree) and root_node.data == 'start':
+                return mast.Module([root_node])
+            return mast.Module(root_node)
+        return root_node
+
+
 def _lazy_load():
     """
     Loads the Lark EBNF files (MLIR and default dialects) into memory upon
@@ -52,51 +118,8 @@ def parse_string(code: str,
                      addition to the built-in dialects).
     :return: A module node representing the root of the AST.
     """
-    # Lazy-load (if necessary) the Lark files
-    _lazy_load()
-
-    # Check validity of given dialects
-    dialects = dialects or []
-    builtin_names = [dialect.name for dialect in _DIALECT_LARKS]
-    additional_names = [dialect.name for dialect in dialects]
-    dialect_set = set(builtin_names) | set(additional_names)
-    if len(dialect_set) != (len(dialects) + len(_DIALECT_LARKS)):
-        raise NameError(
-            'Additional dialect already exists (built-in dialects: %s, given '
-            'dialects: %s)' % (builtin_names, additional_names))
-
-    # Create a parser from the MLIR EBNF file, default dialects, and additional
-    # dialects if exist
-    parser_src = _MLIR_LARK + ''
-    op_expr = 'pymlir_dialect_ops: '
-    type_expr = 'pymlir_dialect_types: '
-    first = True
-    for dialect in itertools.chain(_DIALECT_LARKS, dialects):
-        parser_src += dialect.contents
-        if not first:
-            op_expr += '| '
-            type_expr += '| '
-        first = False
-        op_expr += dialect.name + '_dialect_operations '
-        type_expr += dialect.name + '_dialect_types '
-
-    parser_src += op_expr + '\n' + type_expr
-
-    # Create parser
-    parser = Lark(parser_src, parser='earley')
-
-    # Parse code and return result
-    transformer = TreeToMlir()
-    tree = parser.parse(code)
-    root_node = transformer.transform(tree)
-
-    # If the root node is a function/definition or a list thereof, return
-    # a top-level module
-    if not isinstance(root_node, mast.Module):
-        if isinstance(root_node, Tree) and root_node.data == 'start':
-            return mast.Module([root_node])
-        return mast.Module(root_node)
-    return root_node
+    parser = Parser(dialects)
+    return parser.parse(code)
 
 
 def parse_file(file: TextIO,

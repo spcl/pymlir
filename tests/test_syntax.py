@@ -1,9 +1,10 @@
 """ Tests pyMLIR on different syntactic edge-cases. """
 
-from mlir import parse_string
+from mlir import Parser
+from typing import Optional
 
 
-def test_attributes():
+def test_attributes(parser: Optional[Parser] = None):
     code = '''
 module {
   func @myfunc(%tensor: tensor<256x?xf64>) -> tensor<*xf64> {
@@ -16,11 +17,12 @@ module {
   }
 }
     '''
-
-    module = parse_string(code)
+    parser = parser or Parser()
+    module = parser.parse(code)
     print(module.pretty())
 
-def test_memrefs():
+
+def test_memrefs(parser: Optional[Parser] = None):
     code = '''
 module {
   func @myfunc() {
@@ -29,12 +31,13 @@ module {
           memref<*xf32, 8>)
   }
 }
-'''
-    module = parse_string(code)
+    '''
+    parser = parser or Parser()
+    module = parser.parse(code)
     print(module.pretty())
 
 
-def test_trailing_loc():
+def test_trailing_loc(parser: Optional[Parser] = None):
     code = '''
     module {
       func @myfunc() {
@@ -42,11 +45,12 @@ def test_trailing_loc():
       }
     } loc("hi.mlir":30:1)
     '''
-    module = parse_string(code)
+    parser = parser or Parser()
+    module = parser.parse(code)
     print(module.pretty())
 
 
-def test_modules():
+def test_modules(parser: Optional[Parser] = None):
     code = '''
 module {
   module {
@@ -68,10 +72,12 @@ module {
     }
   }
 }'''
-    module = parse_string(code)
+    parser = parser or Parser()
+    module = parser.parse(code)
     print(module.pretty())
 
-def test_functions():
+
+def test_functions(parser: Optional[Parser] = None):
     code = '''
     module {
       func @myfunc_a() {
@@ -83,22 +89,24 @@ def test_functions():
         %f:2 = addf %d, %d : f64
       }
     }'''
-    module = parse_string(code)
+    parser = parser or Parser()
+    module = parser.parse(code)
     print(module.pretty())
 
 
-def test_toplevel_function():
+def test_toplevel_function(parser: Optional[Parser] = None):
     code = '''
     func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
       %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
       return %t_tensor : tensor<3x2xf64>
     }'''
 
-    module = parse_string(code)
+    parser = parser or Parser()
+    module = parser.parse(code)
     print(module.pretty())
 
 
-def test_toplevel_functions():
+def test_toplevel_functions(parser: Optional[Parser] = None):
     code = '''
     func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
       %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
@@ -109,15 +117,18 @@ def test_toplevel_functions():
       return %t_tensor : tensor<3x2xf64>
     }'''
 
-    module = parse_string(code)
+    parser = parser or Parser()
+    module = parser.parse(code)
     print(module.pretty())
 
 
 if __name__ == '__main__':
-    test_attributes()
-    test_memrefs()
-    test_trailing_loc()
-    test_modules()
-    test_functions()
-    test_toplevel_function()
-    test_toplevel_functions()
+    p = Parser()
+    print("MLIR parser created")
+    test_attributes(p)
+    test_memrefs(p)
+    test_trailing_loc(p)
+    test_modules(p)
+    test_functions(p)
+    test_toplevel_function(p)
+    test_toplevel_functions(p)
