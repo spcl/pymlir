@@ -2,27 +2,30 @@
 
 // ----------------------------------------------------------------------
 // Low-level literal syntax
-digit     : /[0-9]/
-hex_digit : /[0-9a-fA-F]/
-letter    : /[a-zA-Z]/
-id_punct  : /[$._-]/
-underscore: /[_]/
-true      : "true"
-false     : "false"
+digit      : /[0-9]/
+digits     : /[0-9]+/
+hex_digit  : /[0-9a-fA-F]/
+hex_digits : /[0-9a-fA-F]+/
+letter     : /[a-zA-Z]/
+letters    : /[a-zA-Z]+/
+id_punct   : /[$._-]/
+underscore : /[_]/
+true       : "true"
+false      : "false"
 
 id_chars: /[$.]/
 
 bool_literal : true | false
 integer_literal : decimal_literal | hexadecimal_literal
-decimal_literal : digit+
-hexadecimal_literal : "0x" hex_digit+
+decimal_literal : digits
+hexadecimal_literal : "0x" hex_digits
 float_literal : /[-+]?[0-9]+[.][0-9]*([eE][-+]?[0-9]+)?/
 string_literal  : ESCAPED_STRING
 constant_literal : bool_literal | integer_literal | float_literal | string_literal
 
 // Identifier syntax
 bare_id : (letter| underscore) (letter|digit|underscore|id_chars)*
-suffix_id : (digit+) | bare_id
+suffix_id : digits | bare_id
 
 // Dimensions
 dimension : "?" | decimal_literal
@@ -34,7 +37,7 @@ dimension_list : dimension_list_ranked | dimension_list_unranked
 // ----------------------------------------------------------------------
 // Identifiers
 
-ssa_id        : "%" suffix_id
+ssa_id        : "%" suffix_id ("#" digits)?
 symbol_ref_id : "@" (suffix_id | string_literal)
 block_id      : "^" suffix_id
 type_alias     : "!" (string_literal | bare_id)

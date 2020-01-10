@@ -89,7 +89,18 @@ class Identifier(Node):
 
 
 class SsaId(Identifier):
+    _fields_ = ['value', 'index']
     _prefix_ = '%'
+
+    def __init__(self, node: Token = None, **fields):
+        self.value = node[0]
+        self.index = node[1] if len(node) > 1 else None
+        super().__init__(None, **fields)
+
+    def dump(self) -> str:
+        if self.index:
+            return self._prefix_ + self.value + ("#%s" % self.index)
+        return self._prefix_ + self.value
 
 
 class SymbolRefId(Identifier):

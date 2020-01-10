@@ -6,8 +6,11 @@ class TreeToMlir(Transformer):
     ###############################################################
     # Low-level literal syntax
     digit = lambda self, val: int(val[0])
+    digits = lambda self, val: int(val[0])
     hex_digit = lambda self, val: str(val[0])
+    hex_digits = lambda self, val: str(val[0])
     letter = lambda self, val: str(val[0])
+    letters = lambda self, val: str(val[0])
     id_punct = lambda self, val: str(val[0])
     underscore = lambda self, val: str(val[0])
     true = lambda self, _: True
