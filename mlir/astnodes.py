@@ -276,8 +276,9 @@ class PrettyDialectType(Type):
     _fields_ = ['dialect', 'type', 'body']
 
     def dump(self) -> str:
-        return '!%s.%s<%s>' % (self.dialect, self.type,
-                               _dump_or_value(self.body))
+        return '!%s.%s<%s>' % (
+            self.dialect, self.type, ', '.join(_dump_or_value(item)
+                                               for item in self.body))
 
 
 class FunctionType(Type):

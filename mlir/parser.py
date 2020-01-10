@@ -6,6 +6,7 @@ import os
 import sys
 from typing import List, Optional, TextIO
 
+from mlir.parser_transformer import TreeToMlir
 from mlir.dialect import Dialect
 from mlir import astnodes as mast
 
@@ -85,9 +86,9 @@ def parse_string(code: str,
     parser = Lark(parser_src, parser='earley')
 
     # Parse code and return result
-    from mlir.parser_transformer import TreeToMlir
     transformer = TreeToMlir()
-    root_node = transformer.transform(parser.parse(code))
+    tree = parser.parse(code)
+    root_node = transformer.transform(tree)
 
     # If the root node is a function/definition or a list thereof, return
     # a top-level module

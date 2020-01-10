@@ -31,8 +31,8 @@ class TreeToMlir(Transformer):
         return astnodes.StringLiteral(s[1:-1].replace('\\"', '"'))
 
     @v_args(inline=True)
-    def bare_id(self, *s):
-        return ''.join(s)
+    def bare_id(self, *elements):
+        return ''.join(str(s) for s in elements)
 
     @v_args(inline=True)
     def suffix_id(self, *suffix):
