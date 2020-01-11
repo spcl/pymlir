@@ -1,6 +1,10 @@
 # pyMLIR: Python Interface for the Multi-Level Intermediate Representation
 
-pyMLIR is a full Python interface to parse, process, and output [MLIR](https://mlir.llvm.org/) files according to the syntax described in the [MLIR documentation](https://github.com/llvm/llvm-project/tree/master/mlir/docs). pyMLIR supports the basic dialects and can be extended with other dialects. It uses [Lark](https://github.com/lark-parser/lark) to parse the MLIR syntax, and mirrors the classes into Python classes. Custom dialects must implement a `.lark` file.
+pyMLIR is a full Python interface to parse, process, and output [MLIR](https://mlir.llvm.org/) files according to the
+syntax described in the [MLIR documentation](https://github.com/llvm/llvm-project/tree/master/mlir/docs). pyMLIR 
+supports the basic dialects and can be extended with other dialects. It uses [Lark](https://github.com/lark-parser/lark)
+to parse the MLIR syntax, and mirrors the classes into Python classes. Custom dialects can also be implemented with a
+Python string-format-like syntax, or via direct parsing.
 
 Note that the tool *does not depend on LLVM or MLIR*. It can be installed and invoked directly from Python. 
 
@@ -8,14 +12,17 @@ Note that the tool *does not depend on LLVM or MLIR*. It can be installed and in
 
 **How to install:** `pip install git+git://github.com/spcl/pymlir.git`
 
-**Requirements:** Python 3.6 or newer, and the requirements in `setup.py` or `requirements.txt`. To manually install the requirements, use `pip install -r requirements.txt`
+**Requirements:** Python 3.6 or newer, and the requirements in `setup.py` or `requirements.txt`. To manually install the
+requirements, use `pip install -r requirements.txt`
 
-**Problem parsing MLIR files?** Run the file through LLVM's `mlir-opt` to canonicalize it (instructions on how to build/install MLIR can be found [here](https://mlir.llvm.org/getting_started/)):
+**Problem parsing MLIR files?** Run the file through LLVM's `mlir-opt` to canonicalize it (instructions on how to
+build/install MLIR can be found [here](https://mlir.llvm.org/getting_started/)):
 ```
 $ mlir-opt file.mlir > output.mlir
 ```
 
-**Found other problems parsing files?** Not all dialects and modes are supported. Feel free to send us an issue or create a pull request! This is a community project and we welcome any contribution.
+**Found other problems parsing files?** Not all dialects and modes are supported. Feel free to send us an issue or
+create a pull request! This is a community project and we welcome any contribution.
 
 ## Usage examples
 
@@ -39,7 +46,8 @@ module {
 
 ### Inspecting MLIR files in Python
 
-MLIR files can be inspected by dumping their contents (which will print standard MLIR code), or by using the same tools as you would with Python's [ast](https://docs.python.org/3/library/ast.html) module.
+MLIR files can be inspected by dumping their contents (which will print standard MLIR code), or by using the same tools
+as you would with Python's [ast](https://docs.python.org/3/library/ast.html) module.
 
 ```python
 import mlir
@@ -65,7 +73,8 @@ MyVisitor().visit(m)
 
 ### Transforming MLIR files
 
-MLIR files can also be transformed with a Python-like [NodeTransformer](https://docs.python.org/3/library/ast.html#ast.NodeTransformer) object.
+MLIR files can also be transformed with a Python-like 
+[NodeTransformer](https://docs.python.org/3/library/ast.html#ast.NodeTransformer) object.
 
 ```python
 import mlir
