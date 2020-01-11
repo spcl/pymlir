@@ -25,6 +25,6 @@ setup(
     },
     include_package_data=True,
     install_requires=[
-        'lark'
+        'lark', 'parse'
     ],
     scripts=[])

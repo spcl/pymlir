@@ -170,6 +170,4 @@ class TreeToMlir(Transformer):
     semi_affine_map = lambda self, value: value[0]
     integer_set = lambda self, value: value[0]
 
-    # Dialect ops and types
-    pymlir_dialect_ops = lambda self, value: value[0].children[0]
-    pymlir_dialect_types = lambda self, value: value[0].children[0]
+    # Dialect ops and types are appended to this list via "setattr"

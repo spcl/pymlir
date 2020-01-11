@@ -7,12 +7,9 @@ import sys
 from typing import List, Optional, TextIO
 
 from mlir.parser_transformer import TreeToMlir
-from mlir.dialect import Dialect
+from mlir.dialect import Dialect, add_dialect_rules
+from mlir.dialects import STANDARD_DIALECTS
 from mlir import astnodes as mast
-
-# Load the MLIR EBNF syntax to memory once
-_MLIR_LARK = None
-_DIALECT_LARKS: List[Dialect] = []
 
 
 class Parser(object):
@@ -32,36 +29,44 @@ class Parser(object):
         # Lazy-load (if necessary) the Lark files
         _lazy_load()
 
+        # Initialize EBNF source for parser
+        parser_src = _MLIR_LARK + '\n'
+
         # Check validity of given dialects
         dialects = dialects or []
-        builtin_names = [dialect.name for dialect in _DIALECT_LARKS]
+        builtin_names = [dialect.name for dialect in STANDARD_DIALECTS]
         additional_names = [dialect.name for dialect in dialects]
         dialect_set = set(builtin_names) | set(additional_names)
-        if len(dialect_set) != (len(dialects) + len(_DIALECT_LARKS)):
+        if len(dialect_set) != (len(dialects) + len(STANDARD_DIALECTS)):
             raise NameError(
                 'Additional dialect already exists (built-in dialects: %s, '
                 'given dialects: %s)' % (builtin_names, additional_names))
 
+        # Add dialect contents to parser
+        rule_dict_ops = {}
+        rule_dict_types = {}
+        for dialect in itertools.chain(STANDARD_DIALECTS, dialects):
+            # Add preamble for dialect
+            parser_src += dialect.contents
+            # Add rules for operations and types
+            parser_src += add_dialect_rules(dialect, dialect.ops, 'op',
+                                            rule_dict_ops)
+            parser_src += add_dialect_rules(dialect, dialect.types, 'type',
+                                            rule_dict_types)
+
         # Create a parser from the MLIR EBNF file, default dialects, and
         # additional dialects if exist
-        parser_src = _MLIR_LARK + ''
-        op_expr = 'pymlir_dialect_ops: '
-        type_expr = 'pymlir_dialect_types: '
-        first = True
-        for dialect in itertools.chain(_DIALECT_LARKS, dialects):
-            parser_src += dialect.contents
-            if not first:
-                op_expr += '| '
-                type_expr += '| '
-            first = False
-            op_expr += dialect.name + '_dialect_operations '
-            type_expr += dialect.name + '_dialect_types '
-
+        op_expr = '?pymlir_dialect_ops: ' + '|'.join(rule_dict_ops.keys())
+        type_expr = '?pymlir_dialect_types: ' + '|'.join(rule_dict_types.keys())
         parser_src += op_expr + '\n' + type_expr
 
         # Create parser and tree transformer
         self.parser = Lark(parser_src, parser='earley')
         self.transformer = TreeToMlir()
+
+        # Add dialect rules to transformer
+        for rule_name, ctor in itertools.chain(rule_dict_ops.items(), rule_dict_types.items()):
+            setattr(self.transformer, rule_name, ctor)
 
     def parse(self, code: str) -> mast.Module:
         """
@@ -70,7 +75,8 @@ class Parser(object):
             :param code: A code string in MLIR format.
             :return: A module node representing the root of the AST.
         """
-        root_node = self.transformer.transform(self.parser.parse(code))
+        tree = self.parser.parse(code)
+        root_node = self.transformer.transform(tree)
 
         # If the root node is a function/definition or a list thereof, return
         # a top-level module
@@ -81,32 +87,25 @@ class Parser(object):
         return root_node
 
 
+# Load the MLIR EBNF syntax to memory once
+_MLIR_LARK = None
+
+
 def _lazy_load():
     """
     Loads the Lark EBNF files (MLIR and default dialects) into memory upon
     first use.
     """
     global _MLIR_LARK
-    global _DIALECT_LARKS
 
     # Lazily load the MLIR EBNF file and the dialects
     if _MLIR_LARK is None:
         # Find path to files
         mlir_path = os.path.join(
             os.path.abspath(os.path.dirname(__file__)), 'lark')
-        dialects_path = os.path.join(mlir_path, 'dialects')
 
         with open(os.path.join(mlir_path, 'mlir.lark'), 'r') as fp:
             _MLIR_LARK = fp.read()
-
-        _DIALECT_LARKS = []
-        for dialect in os.listdir(dialects_path):
-            if dialect.endswith('.lark'):
-                # Cut the last extension characters
-                dialect_name = os.path.basename(dialect)[:-5]
-                _DIALECT_LARKS.append(
-                    Dialect(
-                        os.path.join(dialects_path, dialect), dialect_name))
 
 
 def parse_string(code: str,
