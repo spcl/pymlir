@@ -8,8 +8,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 
 def _get_fields(syntax: str):
-    return [tuple(name.split('.')) for name in
-            parse.compile(syntax)._name_types.keys()]
+    return [
+        tuple(name.split('.'))
+        for name in parse.compile(syntax)._name_types.keys()
+    ]
 
 
 class DialectElement(astnodes.Node):
@@ -57,16 +59,18 @@ class DialectElement(astnodes.Node):
             sfields = _get_fields(syntax)
             compiled_fields.append(sfields)
             if any(len(field) != 2 for field in sfields):
-                raise ValueError('Syntax matches must provide exactly one name '
-                                 'and one type')
+                raise ValueError(
+                    'Syntax matches must provide exactly one name '
+                    'and one type')
             fields |= set(f[0] for f in sfields)
 
             # Create Lark expression
             # Replace {{ and }}
             syntax = syntax.replace('{{', '{LBRACE}').replace('}}', '{RBRACE}')
             # Replace words with strings
-            syntax = ' '.join((('"%s"' % word) if not word.startswith('{')
-                               else word) for word in syntax.split())
+            syntax = ' '.join(
+                (('"%s"' % word) if not word.startswith('{') else word)
+                for word in syntax.split())
             # Replace back {field.type} with types
             for fname, ftype in sfields:
                 syntax = syntax.replace('{%s.%s}' % (fname, ftype), ftype)
@@ -104,7 +108,7 @@ class DialectElement(astnodes.Node):
 
         super().__init__(None, **fields)
 
-    def dump(self) -> str:
+    def dump(self, indent: int = 0) -> str:
         if self._syntax_ is None:
             raise NotImplementedError('Dialect element must either use '
                                       '"_syntax_" or implement its own '
@@ -115,9 +119,10 @@ class DialectElement(astnodes.Node):
         for fname, ftype in sfields:
             dump_str = dump_str.replace('{%s.%s}' % (fname, ftype),
                                         '{%s}' % fname)
-        return dump_str.format_map(
-            {f[0]: astnodes._dump_or_value(getattr(self, f[0]))
-             for f in sfields})
+        return dump_str.format_map({
+            f[0]: astnodes._dump_or_value(getattr(self, f[0]), indent)
+            for f in sfields
+        })
 
 
 class DialectOp(DialectElement):
@@ -133,11 +138,13 @@ class DialectType(DialectElement):
 
 
 class Dialect(object):
-    def __init__(self, name: str,
-                 ops: Optional[List[Type[DialectOp]]] = None,
-                 types: Optional[List[Type[DialectType]]] = None,
-                 preamble: Optional[str] = None,
-                 transformers: Optional[Dict[str, Union[Callable, Type]]] = None):
+    def __init__(
+            self,
+            name: str,
+            ops: Optional[List[Type[DialectOp]]] = None,
+            types: Optional[List[Type[DialectType]]] = None,
+            preamble: Optional[str] = None,
+            transformers: Optional[Dict[str, Union[Callable, Type]]] = None):
         """
 
         :param name: Dialect name (should be unique).
@@ -183,12 +190,14 @@ def add_dialect_rules(dialect: Dialect, elements: List[Type[DialectElement]],
 
         # Fill contents with procedurally-generated rules
         for i, rule in enumerate(elem._lark_):
-            rule_name = '%s_%s_%s_%d' % (
-                dialect.name, typename, elem.__name__.lower(), i)
+            rule_name = '%s_%s_%s_%d' % (dialect.name, typename,
+                                         elem.__name__.lower(), i)
             parser_src += '%s: %s\n' % (rule_name, rule)
+
             # Add rule to transformer
             def create_rule(elem, i):
                 return lambda *value: elem(i, *value)
+
             rule_dict[rule_name] = create_rule(elem, i)
 
     return parser_src
@@ -196,22 +205,24 @@ def add_dialect_rules(dialect: Dialect, elements: List[Type[DialectElement]],
 
 def is_op(member: Any, module: str) -> bool:
     """ Returns true if an object is a Dialect operation subclass. """
-    return (inspect.isclass(member) and issubclass(member, DialectOp) and
-            member.__module__ == module)
+    return (inspect.isclass(member) and issubclass(member, DialectOp)
+            and member.__module__ == module)
 
 
 def is_type(member: Any, module: str) -> bool:
     """ Returns true if an object is a Dialect type subclass. """
-    return (inspect.isclass(member) and issubclass(member, DialectType) and
-            member.__module__ == module)
+    return (inspect.isclass(member) and issubclass(member, DialectType)
+            and member.__module__ == module)
 
 
 #################################################################
 # Helper classes for dialects
 
+
 class UnaryOperation(DialectOp):
     """ Helper class to create unary operations in dialects. """
     _opname_ = 'UNDEF'
+
     @classmethod
     def make_rules(cls):
         cls._syntax_ = '%s {operand.ssa_use} : {type.type}' % cls._opname_
@@ -221,10 +232,10 @@ class UnaryOperation(DialectOp):
 class BinaryOperation(DialectOp):
     """ Helper class to create binary operations in dialects. """
     _opname_ = 'UNDEF'
+
     @classmethod
     def make_rules(cls):
         cls._syntax_ = (
-                '%s {operand_a.ssa_use} , {operand_b.ssa_use} : {type.type}' %
-                cls._opname_)
+            '%s {operand_a.ssa_use} , {operand_b.ssa_use} : {type.type}' %
+            cls._opname_)
         super().make_rules()
-

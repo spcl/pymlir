@@ -58,7 +58,8 @@ class Parser(object):
         # Create a parser from the MLIR EBNF file, default dialects, and
         # additional dialects if exist
         op_expr = '?pymlir_dialect_ops: ' + '|'.join(rule_dict_ops.keys())
-        type_expr = '?pymlir_dialect_types: ' + '|'.join(rule_dict_types.keys())
+        type_expr = '?pymlir_dialect_types: ' + '|'.join(
+            rule_dict_types.keys())
         parser_src += op_expr + '\n' + type_expr
 
         # Create parser and tree transformer
@@ -162,7 +163,7 @@ if __name__ == '__main__':
         # Load Python file with dialect
         global_vars = runpy.run_path(dialect_path)
 
-        additional_dialects.extend(v for v in global_vars.values()
-                                   if isinstance(v, Dialect))
+        additional_dialects.extend(
+            v for v in global_vars.values() if isinstance(v, Dialect))
 
     print(parse_path(sys.argv[1], dialects=additional_dialects).pretty())
