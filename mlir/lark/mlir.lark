@@ -120,7 +120,7 @@ attribute_alias : ("#" (string_literal | bare_id) "=" attribute_value) | ("#" (s
 array_attribute : "[" (attribute_value ("," attribute_value)*)? "]"
 bool_attribute : bool_literal
 dictionary_attribute : "{" (attribute_entry ("," attribute_entry)*)? "}"
-elements_attribute : dense_elements_attribute | opaque_elements_attribute | sparse_elements_attribute
+?elements_attribute : dense_elements_attribute | opaque_elements_attribute | sparse_elements_attribute
 float_attribute : (float_literal (":" float_type)?) | (hexadecimal_literal ":" float_type)
 integer_attribute : posneg_integer_literal ( ":" (index_type | integer_type) )?
 integer_set_attribute : affine_map
@@ -227,7 +227,9 @@ affine_expr : "(" affine_expr ")"
             | affine_expr "mod" integer_literal
             | "-" affine_expr
             | bare_id
+            | ssa_id
             | integer_literal
+            | "symbol" "(" ssa_id ")"
 
 semi_affine_expr : "(" semi_affine_expr ")"
                  | semi_affine_expr "+" semi_affine_expr

@@ -516,7 +516,7 @@ class Operation(Node):
         self.op = node[index]
         index += 1
         if len(node) > index:
-            self.location = node[2]
+            self.location = node[index]
         else:
             self.location = None
 
