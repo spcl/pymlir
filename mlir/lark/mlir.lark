@@ -210,7 +210,11 @@ function : "func" function_signature ("attributes" attribute_dict)? function_bod
 dim_id_list : "(" bare_id? ("," bare_id)* ")"
 symbol_id_list: "[" bare_id? ("," bare_id)* "]"
 dim_and_symbol_id_lists : dim_id_list symbol_id_list?
-symbol_or_const : ("-"? integer_literal) | ssa_id
+symbol_or_const : ("-"? integer_literal) | ssa_id | bare_id
+
+?dim_use_list    : "(" ssa_use_list? ")"
+?symbol_use_list : "[" ssa_use_list? "]"
+dim_and_symbol_use_list : dim_use_list symbol_use_list?
 
 affine_expr : "(" affine_expr ")"
             | affine_expr "+" affine_expr

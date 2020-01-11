@@ -117,6 +117,8 @@ class TreeToMlir(Transformer):
     ###############################################################
     # TODO: (semi-)Affine expressions, maps, and integer sets
 
+    # dim_and_symbol_use_list = astnodes.DimAndSymbolList
+
     ###############################################################
     # TODO: Top-level definitions
 

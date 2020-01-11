@@ -28,7 +28,7 @@ class DimOperation(DialectOp):
 
 # Memory Operations
 class AllocOperation(DialectOp):
-    _syntax_ = 'alloc {args.dim_and_symbol_id_lists} : {type.memref_type}'
+    _syntax_ = 'alloc {args.dim_and_symbol_use_list} : {type.memref_type}'
 class AllocStaticOperation(DialectOp):
     _syntax_ = 'alloc_static ( {base.integer_literal} ) : {type.memref_type}'
 class DeallocOperation(DialectOp):
@@ -90,7 +90,8 @@ class TensorCastOperation(DialectOp):
     _syntax_ = 'tensor_cast {arg.ssa_use} : {src_type.type} to {dst_type.type}'
 class SelectOperation(DialectOp):
     _syntax_ = 'select {cond.ssa_use} , {arg_true.ssa_use} , {arg_false.ssa_use} : {type.type}'
-
+class SubviewOperation(DialectOp):
+    _syntax_ = 'subview {operand.ssa_use} [ {offsets.ssa_use_list} ] [ {sizes.ssa_use_list} ] [ {strides.ssa_use_list} ] : {src_type.type} to {dst_type.type}'
 
 # Inspect current module to get all classes defined above
 standard = Dialect('standard', ops=[m[1] for m in inspect.getmembers(
