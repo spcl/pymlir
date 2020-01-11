@@ -379,6 +379,9 @@ class ArrayAttr(Attribute):
         self.value = node
         super().__init__(None, **fields)
 
+    def dump(self) -> str:
+        return '[%s]' % _dump_or_value(self.value)
+
 
 class BoolAttr(Attribute):
     pass
@@ -390,7 +393,7 @@ class DictionaryAttr(Attribute):
         super().__init__(None, **fields)
 
     def dump(self) -> str:
-        return '{%s}' % ', '.join(_dump_or_value(v) for v in self.value)
+        return '{%s}' % _dump_or_value(self.value)
 
 
 class ElementsAttr(Attribute):
@@ -867,6 +870,8 @@ def _dump_ast_or_value(value: Any, python=True) -> str:
 
     # Primitive types
     if isinstance(value, list):
+        if not python:
+            return ', '.join(_dump_ast_or_value(v, python) for v in value)
         return '[%s]' % ', '.join(_dump_ast_or_value(v, python) for v in value)
     if isinstance(value, tuple):
         return '(%s%s)' % (', '.join(
