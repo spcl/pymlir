@@ -66,7 +66,7 @@ print('---')
 # Or visit each node type by implementing visitor functions
 class MyVisitor(mlir.NodeVisitor):
     def visit_Function(self, node: mlir.astnodes.Function):
-        print('Function detected:', node.name)
+        print('Function detected:', node.name.value)
         
 MyVisitor().visit(m)
 ```
