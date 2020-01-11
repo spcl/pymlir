@@ -134,7 +134,9 @@ class DialectOp(DialectElement):
 class DialectType(DialectElement):
     """ A class that can be extended by a dialect to define an MLIR AST node
         for a data type. See DialectElement for more details. """
-    pass
+
+    def dump(self, indent: int = 0) -> str:
+        return '!' + super().dump(indent)
 
 
 class Dialect(object):
