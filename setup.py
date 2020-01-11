@@ -21,7 +21,7 @@ setup(
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     package_data={
-        '': ['lark/*.lark', 'lark/dialects/*.lark']
+        '': ['lark/mlir.lark']
     },
     include_package_data=True,
     install_requires=[

@@ -1,8 +1,0 @@
-// LLVM IR dialect
-
-llvm_return : "llvm.return" (ssa_use_list trailing_type)?
-llvm_br : "llvm.br" block_id
-llvm_cond_br : "llvm.cond_br" ssa_id "," block_id ("," block_id)?
-
-llvmir_dialect_operations: llvm_return | llvm_br | llvm_cond_br
-llvmir_dialect_types: // Empty
