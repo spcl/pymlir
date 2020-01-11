@@ -5,6 +5,7 @@ from lark import Lark, Tree
 import os
 import sys
 from typing import List, Optional, TextIO
+import runpy
 
 from mlir.parser_transformer import TreeToMlir
 from mlir.dialect import Dialect, add_dialect_rules
@@ -157,9 +158,11 @@ if __name__ == '__main__':
         exit(1)
 
     additional_dialects = []
-    for dialect_name in sys.argv[2:]:
-        additional_dialects.append(
-            Dialect(dialect_name,
-                    os.path.basename(dialect_name)[:-5]))
+    for dialect_path in sys.argv[2:]:
+        # Load Python file with dialect
+        global_vars = runpy.run_path(dialect_path)
+
+        additional_dialects.extend(v for v in global_vars.values()
+                                   if isinstance(v, Dialect))
 
     print(parse_path(sys.argv[1], dialects=additional_dialects).pretty())
