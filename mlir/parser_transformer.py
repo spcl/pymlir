@@ -138,6 +138,7 @@ class TreeToMlir(Transformer):
     type_list_no_parens = list
     affine_constraint_conjunction = list
     function_result_list_no_parens = list
+    multi_dim_affine_expr_no_parens = list
     dim_id_list = list
     symbol_id_list = list
 
@@ -165,6 +166,7 @@ class TreeToMlir(Transformer):
     trailing_type = lambda self, value: value[0]
     trailing_location = lambda self, value: value[0]
     function_result_list_parens = lambda self, value: value[0]
+    multi_dim_affine_expr = lambda self, value: value[0]
     symbol_or_const = lambda self, value: value[0]
     affine_map = lambda self, value: value[0]
     semi_affine_map = lambda self, value: value[0]

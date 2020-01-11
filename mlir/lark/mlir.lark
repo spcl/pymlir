@@ -234,7 +234,8 @@ semi_affine_expr : "(" semi_affine_expr ")"
                  | "symbol" "(" symbol_or_const ")"
 
 multi_dim_semi_affine_expr : "(" semi_affine_expr ("," semi_affine_expr)* ")"
-multi_dim_affine_expr : "(" affine_expr ("," affine_expr)* ")"
+multi_dim_affine_expr_no_parens : affine_expr ("," affine_expr)*
+multi_dim_affine_expr : "(" multi_dim_affine_expr_no_parens ")"
 affine_constraint : (affine_expr ">=" "0") | (affine_expr "==" "0")
 affine_constraint_conjunction : affine_constraint ("," affine_constraint)*
 
