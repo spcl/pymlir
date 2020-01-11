@@ -65,8 +65,12 @@ class Parser(object):
         self.transformer = TreeToMlir()
 
         # Add dialect rules to transformer
-        for rule_name, ctor in itertools.chain(rule_dict_ops.items(), rule_dict_types.items()):
+        for rule_name, ctor in itertools.chain(rule_dict_ops.items(),
+                                               rule_dict_types.items()):
             setattr(self.transformer, rule_name, ctor)
+        for dialect in itertools.chain(STANDARD_DIALECTS, dialects):
+            for rule_name, rule in dialect.transformers.items():
+                setattr(self.transformer, rule_name, rule)
 
     def parse(self, code: str) -> mast.Module:
         """

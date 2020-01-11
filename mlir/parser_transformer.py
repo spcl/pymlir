@@ -27,6 +27,7 @@ class TreeToMlir(Transformer):
     def hexadecimal_literal(self, *digits):
         return '0x' + ''.join(digits)
 
+    negated_integer_literal = lambda self, value: -value[0]
     float_literal = lambda self, value: float(value[0])
 
     @v_args(inline=True)
@@ -109,7 +110,7 @@ class TreeToMlir(Transformer):
 
     block_label = astnodes.BlockLabel
     block = astnodes.Block
-    region = list
+    region = astnodes.Region
     module = astnodes.Module
     function = astnodes.Function
     named_argument = astnodes.NamedArgument

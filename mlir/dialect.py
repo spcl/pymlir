@@ -136,18 +136,22 @@ class Dialect(object):
     def __init__(self, name: str,
                  ops: Optional[List[Type[DialectOp]]] = None,
                  types: Optional[List[Type[DialectType]]] = None,
-                 preamble: Optional[str] = None):
+                 preamble: Optional[str] = None,
+                 transformers: Optional[Dict[str, Union[Callable, Type]]] = None):
         """
 
-        :param name:
-        :param ops:
-        :param types:
+        :param name: Dialect name (should be unique).
+        :param ops: A list of dialect AST nodes for operations.
+        :param types: A list of dialect AST nodes for types.
         :param preamble: Preamble in Lark syntax for the dialect.
+        :param transformers: A dictionary that maps between rule names in the
+                             Lark preamble to Python classes or AST node types.
         """
         self.contents = preamble or ''
         self.name = name
         self.ops = ops or []
         self.types = types or []
+        self.transformers = transformers or {}
 
         # Make syntactic rules for each operation and type
         for op in self.ops:

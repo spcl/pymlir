@@ -16,9 +16,11 @@ false      : "false"
 id_chars: /[$.]/
 
 bool_literal : true | false
-integer_literal : decimal_literal | hexadecimal_literal
 decimal_literal : digits
 hexadecimal_literal : "0x" hex_digits
+integer_literal : decimal_literal | hexadecimal_literal
+negated_integer_literal : "-" integer_literal
+?posneg_integer_literal : integer_literal | negated_integer_literal
 float_literal : /[-+]?[0-9]+[.][0-9]*([eE][-+]?[0-9]+)?/
 string_literal  : ESCAPED_STRING
 constant_literal : bool_literal | integer_literal | float_literal | string_literal
@@ -120,7 +122,7 @@ bool_attribute : bool_literal
 dictionary_attribute : "{" (attribute_entry ("," attribute_entry)*)? "}"
 elements_attribute : dense_elements_attribute | opaque_elements_attribute | sparse_elements_attribute
 float_attribute : (float_literal (":" float_type)?) | (hexadecimal_literal ":" float_type)
-integer_attribute : "-"? integer_literal ( ":" (index_type | integer_type) )?
+integer_attribute : posneg_integer_literal ( ":" (index_type | integer_type) )?
 integer_set_attribute : affine_map
 string_attribute : string_literal (":" type)?
 symbol_ref_attribute : symbol_ref_id ("::" symbol_ref_id)*
@@ -198,7 +200,7 @@ function_result_list : function_result_list_parens | non_function_type
 
 // Body
 module_body : "{" (function | module | block)* "}"
-function_body : region
+?function_body : region
 
 // Definition
 module : "module" symbol_ref_id? ("attributes" attribute_dict)? module_body trailing_location?
@@ -210,7 +212,7 @@ function : "func" function_signature ("attributes" attribute_dict)? function_bod
 dim_id_list : "(" bare_id? ("," bare_id)* ")"
 symbol_id_list: "[" bare_id? ("," bare_id)* "]"
 dim_and_symbol_id_lists : dim_id_list symbol_id_list?
-symbol_or_const : ("-"? integer_literal) | ssa_id | bare_id
+symbol_or_const : posneg_integer_literal | ssa_id | bare_id
 
 ?dim_use_list    : "(" ssa_use_list? ")"
 ?symbol_use_list : "[" ssa_use_list? "]"
