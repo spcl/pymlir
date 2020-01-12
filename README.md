@@ -14,7 +14,7 @@ Note that the tool *does not depend on LLVM or MLIR*. It can be installed and in
 
 ## Instructions 
 
-**How to install:** `pip install git+git://github.com/spcl/pymlir.git`
+**How to install:** `pip install pymlir`
 
 **Requirements:** Python 3.6 or newer, and the requirements in `setup.py` or `requirements.txt`. To manually install the
 requirements, use `pip install -r requirements.txt`
