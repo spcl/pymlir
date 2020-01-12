@@ -12,7 +12,9 @@ before_install:
 install:
   - pip install ".[test]" .
 
-script: pytest --cov=mlir --cov-report=xml --cov-report=term
+script: 
+  - export PYTHONPATH=`pwd`
+  - pytest --cov=mlir --cov-report=xml --cov-report=term
 
 after_success:
   - codecov
