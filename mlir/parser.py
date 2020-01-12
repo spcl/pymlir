@@ -81,7 +81,18 @@ class Parser(object):
             :param code: A code string in MLIR format.
             :return: A module node representing the root of the AST.
         """
+
+        # Pre-transform code to avoid parsing issues with ceildiv/floordiv/mod,
+        # in which two symbols could be parsed as one legal symbol (due to
+        # ignoring whitespace): "d0floordivs0"
+        code = code.replace(' floordiv ', '&floordiv&')
+        code = code.replace(' ceildiv ', '&ceildiv&')
+        code = code.replace(' mod ', '&mod&')
+
+        # Parse the code using Lark
         tree = self.parser.parse(code)
+
+        # Transform the tree to our AST node classes
         root_node = self.transformer.transform(tree)
 
         # If the root node is a function/definition or a list thereof, return

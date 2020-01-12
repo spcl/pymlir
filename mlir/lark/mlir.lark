@@ -215,33 +215,40 @@ symbol_or_const : posneg_integer_literal | ssa_id | bare_id
 ?symbol_use_list : "[" ssa_use_list? "]"
 dim_and_symbol_use_list : dim_use_list symbol_use_list?
 
-affine_expr : "(" affine_expr ")"
-            | affine_expr "+" affine_expr
-            | affine_expr "-" affine_expr
-            | integer_literal "*" affine_expr // -integer comes from -affine_expr
-            | affine_expr "ceildiv" integer_literal
-            | affine_expr "floordiv" integer_literal
-            | affine_expr "mod" integer_literal
-            | "-" affine_expr
-            | bare_id
-            | ssa_id
-            | integer_literal
-            | "symbol" "(" ssa_id ")"
+affine_expr : "(" affine_expr ")"                      -> affine_parens
+            | affine_expr "+" affine_expr              -> affine_add
+            | affine_expr "-" affine_expr              -> affine_sub
+            | posneg_integer_literal "*" affine_expr   -> affine_mul
+            | affine_expr "*" posneg_integer_literal   -> affine_mul
+            | affine_expr "&ceildiv&" integer_literal  -> affine_ceildiv
+            | affine_expr "&floordiv&" integer_literal -> affine_floordiv
+            | affine_expr "&mod&" integer_literal      -> affine_mod
+            | "-" affine_expr                          -> affine_neg
+            | "symbol" "(" ssa_id ")"                  -> affine_symbol_explicit
+            | posneg_integer_literal                   -> affine_literal
+            | ssa_id                                   -> affine_ssa
+            | bare_id                                  -> affine_symbol
 
-semi_affine_expr : "(" semi_affine_expr ")"
-                 | semi_affine_expr "+" semi_affine_expr
-                 | semi_affine_expr "-" semi_affine_expr
-                 | symbol_or_const "*" semi_affine_expr
-                 | semi_affine_expr "ceildiv" symbol_or_const
-                 | semi_affine_expr "floordiv" symbol_or_const
-                 | semi_affine_expr "mod" symbol_or_const
-                 | symbol_or_const
-                 | "symbol" "(" symbol_or_const ")"
+semi_affine_expr : "(" semi_affine_expr ")"                        -> semi_affine_parens
+                 | semi_affine_expr "+" semi_affine_expr           -> semi_affine_add
+                 | semi_affine_expr "-" semi_affine_expr           -> semi_affine_sub
+                 | symbol_or_const "*" semi_affine_expr            -> semi_affine_mul
+                 | semi_affine_expr "*" symbol_or_const            -> semi_affine_mul
+                 | semi_affine_expr "&ceildiv&" semi_affine_oprnd  -> semi_affine_ceildiv
+                 | semi_affine_expr "&floordiv&" semi_affine_oprnd -> semi_affine_floordiv
+                 | semi_affine_expr "&mod&" semi_affine_oprnd      -> semi_affine_mod
+                 | "symbol" "(" symbol_or_const ")"                -> semi_affine_symbol_explicit
+                 | symbol_or_const                                 -> semi_affine_symbol
+
+// Second operand for floordiv/ceildiv/mod in semi-affine expressions
+?semi_affine_oprnd : symbol_or_const
+                   | "(" semi_affine_expr ")" -> semi_affine_parens
 
 multi_dim_semi_affine_expr : "(" semi_affine_expr ("," semi_affine_expr)* ")"
 multi_dim_affine_expr_no_parens : affine_expr ("," affine_expr)*
 multi_dim_affine_expr : "(" multi_dim_affine_expr_no_parens ")"
-affine_constraint : (affine_expr ">=" "0") | (affine_expr "==" "0")
+affine_constraint : affine_expr ">=" "0"    -> affine_constraint_ge
+                  | affine_expr "==" "0"    -> affine_constraint_eq
 affine_constraint_conjunction : affine_constraint ("," affine_constraint)*
 
 affine_map_inline      : dim_and_symbol_id_lists "->" multi_dim_affine_expr
