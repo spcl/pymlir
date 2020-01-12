@@ -120,7 +120,7 @@ class DialectElement(astnodes.Node):
             dump_str = dump_str.replace('{%s.%s}' % (fname, ftype),
                                         '{%s}' % fname)
         return dump_str.format_map({
-            f[0]: astnodes._dump_or_value(getattr(self, f[0]), indent)
+            f[0]: astnodes.dump_or_value(getattr(self, f[0]), indent)
             for f in sfields
         })
 
