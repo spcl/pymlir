@@ -104,16 +104,15 @@ Custom dialects can be written and loaded as part of the pyMLIR parser.
 
 ```python
 import mlir
+from lark import UnexpectedCharacters
+from .mydialect import dialect
 
 # Try to parse as-is
 try:
     m = mlir.parse_path('/path/to/matrixfile.mlir')
-except NameError:  # MyMatrix dialect not recognized
+except UnexpectedCharacters:  # MyMatrix dialect not recognized
     pass
     
-# Load and verify dialect
-dialect = mlir.Dialect('mymatrix.lark', 'mymatrix')
-
 # Add dialect to the parser
 m = mlir.parse_path('/path/to/matrixfile.mlir', 
                     dialects=[dialect])
@@ -121,3 +120,9 @@ m = mlir.parse_path('/path/to/matrixfile.mlir',
 # Print output back
 print(m.dump_ast())
 ```
+
+### Built-in dialect implementations and more examples
+
+All dialect implementations can be found in the `mlir/dialects` subfolder. Additional uses
+of the library, including a custom dialect implementation, can be found in the `tests`
+subfolder.
