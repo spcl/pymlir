@@ -49,6 +49,7 @@ class TreeToMlir(Transformer):
     symbol_ref_id = astnodes.SymbolRefId
     block_id = astnodes.BlockId
     type_alias = astnodes.TypeAlias
+    attribute_alias = astnodes.AttrAlias
     map_or_set_id = astnodes.MapOrSetId
 
     ###############################################################
@@ -121,7 +122,13 @@ class TreeToMlir(Transformer):
     # dim_and_symbol_use_list = astnodes.DimAndSymbolList
 
     ###############################################################
-    # TODO: Top-level definitions
+    # Top-level definitions
+
+    type_alias_def = astnodes.TypeAliasDef
+    affine_map_def = astnodes.AffineMapDef
+    semi_affine_map_def = astnodes.SemiAffineMapDef
+    integer_set_def = astnodes.IntSetDef
+    attribute_alias_def = astnodes.AttrAliasDef
 
     ###############################################################
     # List types

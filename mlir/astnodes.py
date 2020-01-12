@@ -846,14 +846,22 @@ class IntSet(Node):
 
 ##############################################################################
 # Top-level definitions
-# TODO: Implement
-
 
 class Definition(Node):
-    pass
+    _fields_ = ['name', 'value']
+
+    def dump(self, indent: int = 0) -> str:
+        return (indent * '  ' + _dump_or_value(self.name, indent) + ' = ' +
+                _dump_or_value(self.value, indent))
 
 
 class TypeAliasDef(Definition):
+    def dump(self, indent: int = 0) -> str:
+        return (indent * '  ' + _dump_or_value(self.name, indent) + ' = type ' +
+                _dump_or_value(self.value, indent))
+
+
+class AttrAliasDef(Definition):
     pass
 
 

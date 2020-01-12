@@ -44,6 +44,7 @@ symbol_ref_id : "@" (suffix_id | string_literal)
 block_id      : "^" suffix_id
 type_alias     : "!" (string_literal | bare_id)
 map_or_set_id : "#" suffix_id
+attribute_alias : "#" (string_literal | bare_id)
 
 ssa_id_list : ssa_id ("," ssa_id)*
 
@@ -53,9 +54,6 @@ ssa_use_list : ssa_use ("," ssa_use)*
 
 // ----------------------------------------------------------------------
 // Types
-
-// Type aliases
-type_alias_def : type_alias "=" "type" type
 
 // Standard types
 none_type : "none"
@@ -70,7 +68,7 @@ vector_element_type : float_type | integer_type
 vector_type : "vector" "<" static_dimension_list vector_element_type ">"
 
 // Tensor type
-tensor_memref_element_type : vector_element_type | vector_type | complex_type
+tensor_memref_element_type : vector_element_type | vector_type | complex_type | type_alias
 ranked_tensor_type : "tensor" "<" dimension_list_ranked tensor_memref_element_type ">"
 unranked_tensor_type : "tensor" "<" dimension_list_unranked tensor_memref_element_type ">"
 tensor_type : ranked_tensor_type | unranked_tensor_type
@@ -114,8 +112,6 @@ ssa_use_and_type_list : ssa_use_and_type ("," ssa_use_and_type)*
 // ----------------------------------------------------------------------
 // Attributes
 
-attribute_alias : ("#" (string_literal | bare_id) "=" attribute_value) | ("#" (string_literal | bare_id))
-
 // Simple attribute types
 array_attribute : "[" (attribute_value ("," attribute_value)*)? "]"
 bool_attribute : bool_literal
@@ -128,6 +124,7 @@ string_attribute : string_literal (":" type)?
 symbol_ref_attribute : symbol_ref_id ("::" symbol_ref_id)*
 type_attribute : type
 unit_attribute : "unit"
+
 
 // Elements attribute types
 dense_elements_attribute : "dense" "<" attribute_value ">" ":" ( tensor_type | vector_type )
@@ -259,18 +256,17 @@ integer_set     : map_or_set_id | integer_set_inline
 // ----------------------------------------------------------------------
 // General structure and top-level definitions
 
-// Definitions of affine maps/integer sets are at the top of the file
+// Definitions of affine maps/integer sets/aliases are at the top of the file
+type_alias_def : type_alias "=" "type" type
 affine_map_def      : map_or_set_id "=" affine_map_inline
 semi_affine_map_def : map_or_set_id "=" semi_affine_map_inline
 integer_set_def     : map_or_set_id "=" integer_set_inline
+attribute_alias_def : attribute_alias "=" attribute_value
+?definition : type_alias_def | affine_map_def | semi_affine_map_def | integer_set_def | attribute_alias_def
 
 ?start : value*
 ?value : module
-       | type_alias_def
-       | affine_map_def
-       | semi_affine_map_def
-       | integer_set_def
-       | attribute_alias
+       | definition
        | function
 
 // Lark imports

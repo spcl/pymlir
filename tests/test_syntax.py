@@ -122,6 +122,50 @@ def test_toplevel_functions(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
+def test_definitions(parser: Optional[Parser] = None):
+    code = '''
+#map0 = (d0, d1) -> (d0, d1)
+#map1 = (d0) -> (d0)
+#map2 = () -> (0)
+#map3 = () -> (10)
+#map4 = (d0, d1, d2) -> (d0, d1 + d2 + 5)
+#map5 = (d0, d1, d2) -> (d0 + d1, d2)
+#map6 = (d0, d1)[s0] -> (d0, d1 + s0 + 7)
+#map7 = (d0, d1)[s0] -> (d0 + s0, d1)
+#map8 = (d0, d1) -> (d0 + d1 + 11)
+#map9 = (d0, d1)[s0] -> (d0, (d1 + s0) mod 9 + 7)
+#map10 = (d0, d1)[s0] -> ((d0 + s0) floordiv 3, d1)
+//#samap0 = (d0)[s0] -> (d0 floordiv (s0 + 1))
+#samap1 = (d0)[s0] -> (d0 floordiv s0)
+#samap2 = (d0, d1)[s0, s1] -> (d0*s0 + d1*s1)
+#set0 = (d0) : (1 == 0)
+#set1 = (d0, d1)[s0] : ()
+#matmul_accesses = [
+  (m, n, k) -> (m, k),
+  (m, n, k) -> (k, n),
+  (m, n, k) -> (m, n)
+]
+#matmul_trait = {
+  args_in = 2,
+  args_out = 1,
+  iterator_types = ["parallel", "parallel", "reduction"],
+  indexing_maps = #matmul_accesses,
+  library_call = "external_outerproduct_matmul"
+}
+
+!vector_type_A = type vector<4xf32>
+!vector_type_B = type vector<4xf32>
+!vector_type_C = type vector<4x4xf32>
+
+!matrix_type_A = type memref<?x?x!vector_type_A>
+!matrix_type_B = type memref<?x?x!vector_type_B>
+!matrix_type_C = type memref<?x?x!vector_type_C>
+    '''
+    parser = parser or Parser()
+    module = parser.parse(code)
+    print(module.pretty())
+
+
 if __name__ == '__main__':
     p = Parser()
     print("MLIR parser created")
@@ -132,3 +176,4 @@ if __name__ == '__main__':
     test_functions(p)
     test_toplevel_function(p)
     test_toplevel_functions(p)
+    test_definitions(p)
