@@ -50,6 +50,7 @@ def test_visitor(parser: Optional[Parser] = None):
             self.functions += 1
             print('Function detected:', node.name.value)
 
+    parser = parser or Parser()
     m = parser.parse(_code)
     visitor = MyVisitor()
     visitor.visit(m)
@@ -68,6 +69,7 @@ def test_transformer(parser: Optional[Parser] = None):
             # No outputs, no need to do anything
             return self.generic_visit(node)
 
+    parser = parser or Parser()
     m = parser.parse(_code)
     m = RemoveAllResultOps().visit(m)
     print(m.pretty())
