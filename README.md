@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/spcl/pymlir.svg?branch=master)](https://travis-ci.org/spcl/pymlir)
+[![codecov](https://codecov.io/gh/spcl/pymlir/branch/master/graph/badge.svg)](https://codecov.io/gh/spcl/pymlir)
+
+
 # pyMLIR: Python Interface for the Multi-Level Intermediate Representation
 
 pyMLIR is a full Python interface to parse, process, and output [MLIR](https://mlir.llvm.org/) files according to the
