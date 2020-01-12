@@ -808,40 +808,162 @@ class NamedArgument(Node):
 
 
 ##############################################################################
-# (semi-)Affine expressions, maps, and integer sets
-# TODO: Implement
+# Affine and semi-affine expressions
 
-
+# Types of affine expressions
 class AffineExpr(Node):
-    pass
+    _fields_ = ['value']
+
+    def dump(self, indent: int = 0) -> str:
+        return _dump_or_value(self.value, indent)
 
 
 class SemiAffineExpr(Node):
-    pass
+    _fields_ = ['value']
+
+    def dump(self, indent: int = 0) -> str:
+        return _dump_or_value(self.value, indent)
 
 
 class MultiDimAffineExpr(Node):
-    pass
+    _fields_ = ['dims']
+
+    def __init__(self, node: Token = None, **fields):
+        if len(node) == 1 and isinstance(node[0], list):
+            self.dims = node[0]
+        else:
+            self.dims = node
+        super().__init__(None, **fields)
+
+    def dump(self, indent: int = 0) -> str:
+        return '%s : (%s)' % (_dump_or_value(self.dims_and_symbols, indent),
+                              _dump_or_value(self.constraints, indent))
+
+    def dump(self, indent: int = 0) -> str:
+        return '(%s)' % _dump_or_value(self.dims, indent)
 
 
 class MultiDimSemiAffineExpr(Node):
-    pass
+    _fields_ = ['dims']
+
+    def __init__(self, node: Token = None, **fields):
+        if len(node) == 1 and isinstance(node[0], list):
+            self.dims = node[0]
+        else:
+            self.dims = node
+        super().__init__(None, **fields)
+
+    def dump(self, indent: int = 0) -> str:
+        return '(%s)' % _dump_or_value(self.dims, indent)
+
+
+# Contents of single/multi-dimensional (semi-)affine expressions
+class AffineUnaryOp(Node):
+    _fields_ = ['operand']
+    _op_ = '<UNDEF %s>'
+
+    def dump(self, indent: int = 0) -> str:
+        return self._op_ % _dump_or_value(self.operand, indent)
+
+
+class AffineBinaryOp(Node):
+    _fields_ = ['operand_a', 'operand_b']
+    _op_ = '<UNDEF>'
+
+    def dump(self, indent: int = 0) -> str:
+        return '%s %s %s' % (_dump_or_value(self.operand_a, indent), self._op_,
+                             _dump_or_value(self.operand_b, indent))
+
+class AffineNeg(AffineUnaryOp): _op_ = '-%s'
+class AffineParens(AffineUnaryOp): _op_ = '(%s)'
+class AffineExplicitSymbol(AffineUnaryOp): _op_ = 'symbol(%s)'
+
+class AffineAdd(AffineBinaryOp): _op_ = '+'
+class AffineSub(AffineBinaryOp): _op_ = '-'
+class AffineMul(AffineBinaryOp): _op_ = '*'
+class AffineFloorDiv(AffineBinaryOp): _op_ = 'floordiv'
+class AffineCeilDiv(AffineBinaryOp): _op_ = 'ceildiv'
+class AffineMod(AffineBinaryOp): _op_ = 'mod'
+
+##############################################################################
+# (semi-)Affine maps, and integer sets
+
+class DimAndSymbolList(Node):
+    _fields_ = ['dims', 'symbols']
+
+    def __init__(self, node: Token = None, **fields):
+        index = 0
+        if len(node) > index:
+            self.dims = node[index]
+            index += 1
+        else:
+            self.dims = []
+        if len(node) > index:
+            self.symbols = node[index]
+            index += 1
+        else:
+            self.symbols = []
+
+        super().__init__(None, **fields)
+
+    def dump(self, indent: int = 0) -> str:
+        if len(self.symbols) > 0:
+            return '(%s)[%s]' % (_dump_or_value(self.dims, indent),
+                                 _dump_or_value(self.symbols, indent))
+        return '(%s)' % _dump_or_value(self.dims, indent)
 
 
 class AffineConstraint(Node):
-    pass
+    _fields_ = ['expr']
+
+
+class AffineConstraintGreaterEqual(AffineConstraint):
+    def dump(self, indent: int = 0) -> str:
+        return '%s >= 0' % _dump_or_value(self.expr, indent)
+
+
+class AffineConstraintEqual(AffineConstraint):
+    def dump(self, indent: int = 0) -> str:
+        return '%s == 0' % _dump_or_value(self.expr, indent)
 
 
 class AffineMap(Node):
-    pass
+    _fields_ = ['dims_and_symbols', 'map']
+
+    def dump(self, indent: int = 0) -> str:
+        return '%s -> %s' % (_dump_or_value(self.dims_and_symbols, indent),
+                             _dump_or_value(self.map, indent))
 
 
 class SemiAffineMap(Node):
-    pass
+    _fields_ = ['dims_and_symbols', 'map']
+
+    def dump(self, indent: int = 0) -> str:
+        return '%s -> %s' % (_dump_or_value(self.dims_and_symbols, indent),
+                             _dump_or_value(self.map, indent))
 
 
 class IntSet(Node):
-    pass
+    _fields_ = ['dims_and_symbols', 'constraints']
+
+    def __init__(self, node: Token = None, **fields):
+        index = 0
+        if len(node) > index:
+            self.dims_and_symbols = node[index]
+            index += 1
+        else:
+            self.dims_and_symbols = []
+        if len(node) > index:
+            self.constraints = node[index]
+            index += 1
+        else:
+            self.constraints = []
+
+        super().__init__(None, **fields)
+
+    def dump(self, indent: int = 0) -> str:
+        return '%s : (%s)' % (_dump_or_value(self.dims_and_symbols, indent),
+                              _dump_or_value(self.constraints, indent))
 
 
 ##############################################################################

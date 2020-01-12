@@ -117,9 +117,41 @@ class TreeToMlir(Transformer):
     named_argument = astnodes.NamedArgument
 
     ###############################################################
-    # TODO: (semi-)Affine expressions, maps, and integer sets
+    # (semi-)Affine expressions, maps, and integer sets
 
-    # dim_and_symbol_use_list = astnodes.DimAndSymbolList
+    dim_and_symbol_id_lists = astnodes.DimAndSymbolList
+    dim_and_symbol_use_list = astnodes.DimAndSymbolList
+
+    affine_expr = astnodes.AffineExpr
+    semi_affine_expr = astnodes.SemiAffineExpr
+    multi_dim_affine_expr = astnodes.MultiDimAffineExpr
+    multi_dim_semi_affine_expr = astnodes.MultiDimSemiAffineExpr
+
+    affine_constraint_ge = astnodes.AffineConstraintGreaterEqual
+    affine_constraint_eq = astnodes.AffineConstraintEqual
+
+    affine_map_inline = astnodes.AffineMap
+    semi_affine_map_inline = astnodes.SemiAffineMap
+    integer_set_inline = astnodes.IntSet
+
+    affine_neg = astnodes.AffineNeg
+    semi_affine_neg = astnodes.AffineNeg
+    affine_parens = astnodes.AffineParens
+    semi_affine_parens = astnodes.AffineParens
+    affine_symbol_explicit = astnodes.AffineExplicitSymbol
+    semi_affine_symbol_explicit = astnodes.AffineExplicitSymbol
+    affine_add = astnodes.AffineAdd
+    semi_affine_add = astnodes.AffineAdd
+    affine_sub = astnodes.AffineSub
+    semi_affine_sub = astnodes.AffineSub
+    affine_mul = astnodes.AffineMul
+    semi_affine_mul = astnodes.AffineMul
+    affine_floordiv = astnodes.AffineFloorDiv
+    semi_affine_floordiv = astnodes.AffineFloorDiv
+    affine_ceildiv = astnodes.AffineCeilDiv
+    semi_affine_ceildiv = astnodes.AffineCeilDiv
+    affine_mod = astnodes.AffineMod
+    semi_affine_mod = astnodes.AffineMod
 
     ###############################################################
     # Top-level definitions
@@ -151,6 +183,8 @@ class TreeToMlir(Transformer):
     multi_dim_affine_expr_no_parens = list
     dim_id_list = list
     symbol_id_list = list
+    dim_use_list = list
+    symbol_use_list = list
 
     ###############################################################
     # Composite types that should be reduced to sub-types
@@ -176,10 +210,14 @@ class TreeToMlir(Transformer):
     trailing_type = lambda self, value: value[0]
     trailing_location = lambda self, value: value[0]
     function_result_list_parens = lambda self, value: value[0]
-    multi_dim_affine_expr = lambda self, value: value[0]
     symbol_or_const = lambda self, value: value[0]
     affine_map = lambda self, value: value[0]
     semi_affine_map = lambda self, value: value[0]
     integer_set = lambda self, value: value[0]
+    affine_literal = lambda self, value: value[0]
+    semi_affine_literal = lambda self, value: value[0]
+    affine_ssa = lambda self, value: value[0]
+    affine_symbol = lambda self, value: value[0]
+    semi_affine_symbol = lambda self, value: value[0]
 
     # Dialect ops and types are appended to this list via "setattr"

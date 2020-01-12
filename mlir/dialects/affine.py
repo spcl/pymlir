@@ -14,7 +14,7 @@ class AffineForOp(DialectOp):
         'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} {body.region}',
         'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} step {step.symbol_or_const} {body.region}',
         'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} {body.region} {attributes.attribute_dict}',
-        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} step {step.symbol_or_const} {body.region}  {attributes.attribute_dict}'
+        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} step {step.symbol_or_const} {body.region} {attributes.attribute_dict}'
     ]
 
 
