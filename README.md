@@ -104,7 +104,7 @@ with open('output.mlir', 'w') as fp:
 
 ### Using custom dialects
 
-Custom dialects can be written and loaded as part of the pyMLIR parser.
+Custom dialects can be written and loaded as part of the pyMLIR parser. [See full tutorial here](doc/custom_dialect.rst).
 
 ```python
 import mlir
@@ -127,6 +127,6 @@ print(m.dump_ast())
 
 ### Built-in dialect implementations and more examples
 
-All dialect implementations can be found in the `mlir/dialects` subfolder. Additional uses
-of the library, including a custom dialect implementation, can be found in the `tests`
+All dialect implementations can be found in the [dialects](mlir/dialects) subfolder. Additional uses
+of the library, including a custom dialect implementation, can be found in the [tests](tests)
 subfolder.
