@@ -19,10 +19,10 @@ Note that the tool *does not depend on LLVM or MLIR*. It can be installed and in
 **Requirements:** Python 3.6 or newer, and the requirements in `setup.py` or `requirements.txt`. To manually install the
 requirements, use `pip install -r requirements.txt`
 
-**Problem parsing MLIR files?** Run the file through LLVM's `mlir-opt` to canonicalize it (instructions on how to
-build/install MLIR can be found [here](https://mlir.llvm.org/getting_started/)):
+**Problem parsing MLIR files?** Run the file through LLVM's `mlir-opt --mlir-print-op-generic` to get the generic form
+of the IR (instructions on how to build/install MLIR can be found [here](https://mlir.llvm.org/getting_started/)):
 ```
-$ mlir-opt file.mlir > output.mlir
+$ mlir-opt file.mlir --mlir-print-op-generic > output.mlir
 ```
 
 **Found other problems parsing files?** Not all dialects and modes are supported. Feel free to send us an issue or
