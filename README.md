@@ -4,7 +4,7 @@
 
 # pyMLIR: Python Interface for the Multi-Level Intermediate Representation
 
-pyMLIR is a full Python interface to parse, process, and output [MLIR](https://mlir.llvm.org/) files according to the
+pyMLIR is a full Python interface to parse, process, output and run [MLIR](https://mlir.llvm.org/) files according to the
 syntax described in the [MLIR documentation](https://github.com/llvm/llvm-project/tree/master/mlir/docs). pyMLIR 
 supports the basic dialects and can be extended with other dialects. It uses [Lark](https://github.com/lark-parser/lark)
 to parse the MLIR syntax, and mirrors the classes into Python classes. Custom dialects can also be implemented with a
@@ -19,10 +19,10 @@ Note that the tool *does not depend on LLVM or MLIR*. It can be installed and in
 **Requirements:** Python 3.6 or newer, and the requirements in `setup.py` or `requirements.txt`. To manually install the
 requirements, use `pip install -r requirements.txt`
 
-**Problem parsing MLIR files?** Run the file through LLVM's `mlir-opt --mlir-print-op-generic` to get the generic form
-of the IR (instructions on how to build/install MLIR can be found [here](https://mlir.llvm.org/getting_started/)):
-```
-$ mlir-opt file.mlir --mlir-print-op-generic > output.mlir
+**Problem parsing MLIR files?** Run the file through LLVM's `mlir-opt` as `mlir.run.mlir_opt(source, ["--mlir-print-op-generic"])` to
+get the generic form of the IR (instructions on how to build/install MLIR can be found [here](https://mlir.llvm.org/getting_started/)):
+```python
+source = mlir.run.mlir_opt(source, ["--mlir-print-op-generic"])
 ```
 
 **Found other problems parsing files?** Not all dialects and modes are supported. Feel free to send us an issue or
@@ -130,3 +130,38 @@ print(m.dump_ast())
 All dialect implementations can be found in the [dialects](mlir/dialects) subfolder. Additional uses
 of the library, including a custom dialect implementation, can be found in the [tests](tests)
 subfolder.
+
+
+### Call `mlir-opt` and invoke functions
+
+Note that invoking MLIR functions depends on LLVM toolchain. The following binaries must be present in `$PATH`:
+- `mlir-opt`
+- `mlir-translate`
+- `llc`
+
+```python
+source = """
+#identity = affine_map<(i,j) -> (i,j)>
+#attrs = {
+  indexing_maps = [#identity, #identity, #identity],
+  iterator_types = ["parallel", "parallel"]
+}
+func @example(%A: memref<?x?xf64>, %B: memref<?x?xf64>, %C: memref<?x?xf64>) {
+  linalg.generic #attrs ins(%A, %B: memref<?x?xf64>, memref<?x?xf64>) outs(%C: memref<?x?xf64>) {
+  ^bb0(%a: f64, %b: f64, %c: f64):
+    %d = addf %a, %b : f64
+    linalg.yield %d : f64
+  }
+  return
+}"""
+
+source = mlirrun.mlir_opt(source, ["-convert-linalg-to-loops",
+                                   "-convert-scf-to-std"])
+a = np.random.rand(10, 10)
+b = np.random.rand(10, 10)
+c = np.empty_like(a)
+
+mlirrun.call_function(source, "example", [a, b, c])
+
+assert (c == a+b).all()
+```
