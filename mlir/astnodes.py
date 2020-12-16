@@ -773,22 +773,25 @@ class Block(Node):
 
 
 class BlockLabel(Node):
-    _fields_ = ['name', 'args']
+    _fields_ = ['name', 'arg_ids', 'arg_types']
 
     def __init__(self, node: Token = None, **fields):
         self.name = node[0]
         if len(node) > 1:
-            self.args = node[1]
+            arg_id_and_types = [arg.children for arg in node[1][0]]
+            self.arg_ids, self.arg_types = zip(*arg_id_and_types)
         else:
-            self.args = []
+            self.arg_ids = []
+            self.arg_types = []
 
         super().__init__(None, **fields)
 
     def dump(self, indent: int = 0) -> str:
         result = dump_or_value(self.name, indent)
-        if self.args:
+        if self.arg_ids:
             result += ' (%s)' % (', '.join(
-                dump_or_value(arg, indent) for arg in self.args))
+                f'{dump_or_value(id_, indent)}: {dump_or_value(type_, indent)}'
+                for id_, type_ in zip(self.arg_ids, self.arg_types)))
         result += ':\n'
         return result
 
