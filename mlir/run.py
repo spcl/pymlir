@@ -65,9 +65,12 @@ class Memref:
 
     @staticmethod
     def from_numpy(ary):
+        """
+        Create a :class:`Memref` from a :class:`numpy.ndarray`
+        """
         shape = ary.shape
         strides = tuple(stride // ary.itemsize for stride in ary.strides)
-        return Memref(ary.__array_interface__["data"][0],
+        return Memref(ary.ctypes.data,
                       shape,
                       strides)
 
@@ -126,9 +129,19 @@ def guess_toolchain():
     return toolchain
 
 
-def mlir_opt(source, options, mlir_opt="mlir-opt"):
+def get_mlir_opt_version(mlir_opt="mlir-opt"):
+    cmdline = [mlir_opt, "-version"]
+    result, stdout, stderr = call_capture_output(cmdline)
+    return stdout.decode()
+
+
+def mlir_opt(source: str, options: List[str], mlir_opt="mlir-opt"):
     """
+    Calls ``mlir-opt`` on *source* with *options* as additional arguments.
+
+    :arg source: The code to be passed to mlir-opt.
     :arg options: An instance of :class:`list`.
+    :return: Transformed *source* as emitted by ``mlir-opt``.
     """
     assert "-o" not in options
     with tempfile.NamedTemporaryFile(mode="w", suffix=".mlir") as fp:
@@ -143,7 +156,11 @@ def mlir_opt(source, options, mlir_opt="mlir-opt"):
 
 def mlir_translate(source, options, mlir_translate="mlir-translate"):
     """
+    Calls ``mlir-translate`` on *source* with *options* as additional arguments.
+
+    :arg source: The code to be passed to mlir-translate.
     :arg options: An instance of :class:`list`.
+    :return: Transformed *source* as emitted by ``mlir-translate``.
     """
     with tempfile.NamedTemporaryFile(mode="w", suffix=".mlir", delete=False) as fp:
         fp.write(source)
@@ -155,6 +172,10 @@ def mlir_translate(source, options, mlir_translate="mlir-translate"):
 
 
 def mlir_to_llvmir(source, debug=False):
+    """
+    Converts MLIR *source* to LLVM IR. Invokes ``mlir-tranlate -mlir-to-llvmir``
+    under the hood.
+    """
     if debug:
         return mlir_translate(source, ["-mlir-to-llvmir", "-debugify-level=location+variables"])
     else:
@@ -162,6 +183,9 @@ def mlir_to_llvmir(source, debug=False):
 
 
 def llvmir_to_obj(source, llc="llc"):
+    """
+    Returns the compiled object code for the LLVM code *source*.
+    """
     with tempfile.NamedTemporaryFile(mode="w", suffix=".ll") as llfp:
         llfp.write(source)
         llfp.file.flush()
@@ -177,15 +201,12 @@ def llvmir_to_obj(source, llc="llc"):
 def preprocess_arg(arg):
     if isinstance(arg, Memref):
         return arg.pointer_ctype
-    elif isinstance(arg, (ctypes._Pointer, ctypes._SimpleCData)):
-        return arg
-    elif isinstance(arg, (float, int)):
-        # TODO: Does it need to be pre-processed?
-        return arg
     elif isinstance(arg, np.ndarray):
         return Memref.from_numpy(arg).pointer_ctype
+    elif isinstance(arg, np.number):
+        return arg
     else:
-        raise NotImplementedError()
+        raise NotImplementedError(f"Unknown type: {type(arg)}.")
 
 
 def guess_argtypes(args):
@@ -193,15 +214,12 @@ def guess_argtypes(args):
     for arg in args:
         if isinstance(arg, Memref):
             argtypes.append(ctypes.c_void_p)
-        elif isinstance(arg, (ctypes._Pointer, ctypes._SimpleCData)):
-            argtypes.append(type(arg))
-        elif isinstance(arg, float):
-            # TODO: Does it need to be pre-processed?
-            argtypes.append(ctypes.c_double)
         elif isinstance(arg, np.ndarray):
             argtypes.append(ctypes.c_void_p)
+        elif isinstance(arg, np.number):
+            argtypes.append(np.ctypeslib.as_ctypes_type(arg.dtype))
         else:
-            raise NotImplementedError()
+            raise NotImplementedError(f"Unknown type: {type(arg)}.")
 
     return argtypes
 
@@ -209,16 +227,21 @@ def guess_argtypes(args):
 def call_function(source: str, fn_name: str, args: List[Any],
               argtypes: Optional[List[ctypes._SimpleCData]] = None):
     """
-    :arg source: The MLIR code whose function is to be called.
-    :arg fn_name: Name of the function op which is the to be called
+    Calls the function *fn_name* in *source*.
 
+    :arg source: The MLIR code whose function is to be called.
+    :arg args: A list of args to be passed to the function. Each arg can have
+        one of the following types:
+        - :class:`numpy.ndarray`
+        - :class:`numpy.number
+        - :class:`Memref`
+    :arg fn_name: Name of the function op which is the to be called
     """
 
     source = mlir_opt(source, ["-convert-std-to-llvm=emit-c-wrappers"])
     fn_name = f"_mlir_ciface_{fn_name}"
 
     if argtypes is None:
-        # TODO: Can be more concretely obtained by parsing 'source'
         argtypes = guess_argtypes(args)
 
     args = [preprocess_arg(arg) for arg in args]
