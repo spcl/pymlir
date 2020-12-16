@@ -685,7 +685,8 @@ class Function(Node):
             self.args = []
         if (len(signature) > index
                 and signature[index].data == 'function_result_list'):
-            self.result_types = signature[index].children
+            # first child contains all the result types
+            self.result_types = signature[index].children[0]
             index += 1
         else:
             self.result_types = []
@@ -715,8 +716,8 @@ class Function(Node):
         result += '(%s)' % ', '.join(
             dump_or_value(arg, indent) for arg in self.args)
         if self.result_types:
-            if len(self.result_types) == 1:
-                result += ' -> ' + dump_or_value(self.result_types[0], indent)
+            if not isinstance(self.result_types, list):
+                result += ' -> ' + dump_or_value(self.result_types, indent)
             else:
                 result += ' -> (%s)' % ', '.join(
                     dump_or_value(res, indent) for res in self.result_types)

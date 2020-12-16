@@ -202,6 +202,7 @@ class TreeToMlir(Transformer):
     non_function_type = lambda self, value: value[0]
     type = lambda self, value: value[0]
     type_list_parens = lambda self, value: (value[0] if value else [])
+    function_result = lambda self, value: value[0]
     function_result_type = lambda self, value: value[0]
     standard_attribute = lambda self, value: value[0]
     attribute_value = lambda self, value: value[0]
@@ -209,7 +210,7 @@ class TreeToMlir(Transformer):
     attribute_entry = lambda self, value: value[0]
     trailing_type = lambda self, value: value[0]
     trailing_location = lambda self, value: value[0]
-    function_result_list_parens = lambda self, value: value[0]
+    function_result_list_parens = lambda self, value: (value[0] if value else [])
     symbol_or_const = lambda self, value: value[0]
     affine_map = lambda self, value: value[0]
     semi_affine_map = lambda self, value: value[0]
