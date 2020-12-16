@@ -27,6 +27,9 @@ setup(
     install_requires=[
         'lark-parser', 'parse'
     ],
-    tests_require=['pytest', 'pytest-cov'],
+    extras_require={
+        'run': ['pytools', 'codepy', 'numpy']
+    },
+    tests_require=['pytest', 'pytest-cov', 'pytools', 'codepy', 'numpy'],
     test_suite='pytest',
     scripts=[])
