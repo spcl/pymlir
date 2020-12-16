@@ -248,9 +248,10 @@ class RankedMemRefType(Type):
         super().__init__(None, **fields)
 
     def dump(self, indent: int = 0) -> str:
-        result = 'memref<%s' % ('x'.join(
-            t.dump(indent)
-            for t in self.dimensions) + 'x' + self.element_type.dump(indent))
+        result = 'memref<%s' % ('x'.join(t.dump(indent)
+                                         for t in self.dimensions)
+                                + ('x' if self.dimensions else '')
+                                + self.element_type.dump(indent))
         if self.layout is not None:
             result += ', ' + self.layout.dump(indent)
         if self.space is not None:
@@ -314,7 +315,7 @@ class StridedLayout(Node):
     _fields_ = ['offset', 'strides']
 
     def dump(self, indent: int = 0) -> str:
-        return 'offset: %s, strides: %s' % (dump_or_value(
+        return 'offset: %s, strides: [%s]' % (dump_or_value(
             self.offset, indent), dump_or_value(self.strides, indent))
 
 
@@ -523,7 +524,7 @@ class Operation(Node):
         super().__init__(None, **fields)
 
     def dump(self, indent: int = 0) -> str:
-        result = ''
+        result = indent * '  '
         if self.result_list:
             result += '%s = ' % (', '.join(
                 dump_or_value(r, indent) for r in self.result_list))
@@ -765,8 +766,9 @@ class Block(Node):
         result = ''
         if self.label:
             result += indent * '  ' + self.label.dump(indent)
+            indent += 1
         result += '\n'.join(
-            indent * '  ' + stmt.dump(indent) for stmt in self.body)
+            stmt.dump(indent) for stmt in self.body)
         return result
 
 
