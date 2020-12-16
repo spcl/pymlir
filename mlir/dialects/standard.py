@@ -61,6 +61,7 @@ class ExpOperation(UnaryOperation): _opname_ = 'exp'
 class NegfOperation(UnaryOperation): _opname_ = 'negf'
 class TanhOperation(UnaryOperation): _opname_ = 'tanh'
 class CopysignOperation(UnaryOperation): _opname_ = 'copysign'
+class SIToFPOperation(UnaryOperation): _opname_ = 'sitofp'
 
 # Arithmetic Operations
 class AddiOperation(BinaryOperation): _opname_ = 'addi'
@@ -72,6 +73,7 @@ class RemisOperation(BinaryOperation): _opname_ = 'remis'
 class RemiuOperation(BinaryOperation): _opname_ = 'remiu'
 class DivfOperation(BinaryOperation): _opname_ = 'divf'
 class MulfOperation(BinaryOperation): _opname_ = 'mulf'
+class MulIOperation(BinaryOperation): _opname_ = 'muli'
 class SubiOperation(BinaryOperation): _opname_ = 'subi'
 class SubfOperation(BinaryOperation): _opname_ = 'subf'
 class OrOperation(BinaryOperation): _opname_ = 'or'
@@ -84,6 +86,8 @@ class CmpfOperation(DialectOp):
     _syntax_ = 'cmpf {comptype.string_literal} , {operand_a.ssa_id} , {operand_b.ssa_id} : {type.type}'
 class ConstantOperation(DialectOp):
     _syntax_ = 'constant {value.attribute_value} : {type.type}'
+class IndexCastOperation(DialectOp):
+    _syntax_ = 'index_cast {arg.ssa_use} : {src_type.type} to {dst_type.type}'
 class MemrefCastOperation(DialectOp):
     _syntax_ = 'memref_cast {arg.ssa_use} : {src_type.type} to {dst_type.type}'
 class TensorCastOperation(DialectOp):
@@ -92,6 +96,9 @@ class SelectOperation(DialectOp):
     _syntax_ = 'select {cond.ssa_use} , {arg_true.ssa_use} , {arg_false.ssa_use} : {type.type}'
 class SubviewOperation(DialectOp):
     _syntax_ = 'subview {operand.ssa_use} [ {offsets.ssa_use_list} ] [ {sizes.ssa_use_list} ] [ {strides.ssa_use_list} ] : {src_type.type} to {dst_type.type}'
+class ViewOperation(DialectOp):
+    _syntax_ = ['view {operand.ssa_use} [ {offset.ssa_use} ] [ {sizes.ssa_use_list} ] : {src_type.type} to {dst_type.type}',
+                'view {operand.ssa_use} [ {offset.ssa_use} ] [  ] : {src_type.type} to {dst_type.type}']
 
 # Inspect current module to get all classes defined above
 standard = Dialect('standard', ops=[m[1] for m in inspect.getmembers(
