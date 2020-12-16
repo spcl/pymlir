@@ -931,7 +931,7 @@ class AffineMap(Node):
     _fields_ = ['dims_and_symbols', 'map']
 
     def dump(self, indent: int = 0) -> str:
-        return '%s -> %s' % (dump_or_value(self.dims_and_symbols, indent),
+        return 'affine_map<%s -> %s>' % (dump_or_value(self.dims_and_symbols, indent),
                              dump_or_value(self.map, indent))
 
 
