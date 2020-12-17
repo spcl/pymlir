@@ -28,7 +28,8 @@ setup(
         'lark-parser', 'parse'
     ],
     extras_require={
-        'run': ['pytools', 'codepy', 'numpy']
+        'run': ['pytools', 'codepy', 'numpy'],
+        'test': ['pytest', 'pytest-cov', 'pytools', 'codepy', 'numpy']
     },
     tests_require=['pytest', 'pytest-cov', 'pytools', 'codepy', 'numpy'],
     test_suite='pytest',
