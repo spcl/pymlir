@@ -248,9 +248,10 @@ class RankedMemRefType(Type):
         super().__init__(None, **fields)
 
     def dump(self, indent: int = 0) -> str:
-        result = 'memref<%s' % ('x'.join(
-            t.dump(indent)
-            for t in self.dimensions) + 'x' + self.element_type.dump(indent))
+        result = 'memref<%s' % ('x'.join(t.dump(indent)
+                                         for t in self.dimensions)
+                                + ('x' if self.dimensions else '')
+                                + self.element_type.dump(indent))
         if self.layout is not None:
             result += ', ' + self.layout.dump(indent)
         if self.space is not None:
@@ -314,7 +315,7 @@ class StridedLayout(Node):
     _fields_ = ['offset', 'strides']
 
     def dump(self, indent: int = 0) -> str:
-        return 'offset: %s, strides: %s' % (dump_or_value(
+        return 'offset: %s, strides: [%s]' % (dump_or_value(
             self.offset, indent), dump_or_value(self.strides, indent))
 
 
@@ -523,7 +524,7 @@ class Operation(Node):
         super().__init__(None, **fields)
 
     def dump(self, indent: int = 0) -> str:
-        result = ''
+        result = indent * '  '
         if self.result_list:
             result += '%s = ' % (', '.join(
                 dump_or_value(r, indent) for r in self.result_list))
@@ -685,7 +686,8 @@ class Function(Node):
             self.args = []
         if (len(signature) > index
                 and signature[index].data == 'function_result_list'):
-            self.result_types = signature[index].children
+            # first child contains all the result types
+            self.result_types = signature[index].children[0]
             index += 1
         else:
             self.result_types = []
@@ -715,8 +717,8 @@ class Function(Node):
         result += '(%s)' % ', '.join(
             dump_or_value(arg, indent) for arg in self.args)
         if self.result_types:
-            if len(self.result_types) == 1:
-                result += ' -> ' + dump_or_value(self.result_types[0], indent)
+            if not isinstance(self.result_types, list):
+                result += ' -> ' + dump_or_value(self.result_types, indent)
             else:
                 result += ' -> (%s)' % ', '.join(
                     dump_or_value(res, indent) for res in self.result_types)
@@ -764,28 +766,32 @@ class Block(Node):
         result = ''
         if self.label:
             result += indent * '  ' + self.label.dump(indent)
+            indent += 1
         result += '\n'.join(
-            indent * '  ' + stmt.dump(indent) for stmt in self.body)
+            stmt.dump(indent) for stmt in self.body)
         return result
 
 
 class BlockLabel(Node):
-    _fields_ = ['name', 'args']
+    _fields_ = ['name', 'arg_ids', 'arg_types']
 
     def __init__(self, node: Token = None, **fields):
         self.name = node[0]
         if len(node) > 1:
-            self.args = node[1]
+            arg_id_and_types = [arg.children for arg in node[1][0]]
+            self.arg_ids, self.arg_types = zip(*arg_id_and_types)
         else:
-            self.args = []
+            self.arg_ids = []
+            self.arg_types = []
 
         super().__init__(None, **fields)
 
     def dump(self, indent: int = 0) -> str:
         result = dump_or_value(self.name, indent)
-        if self.args:
+        if self.arg_ids:
             result += ' (%s)' % (', '.join(
-                dump_or_value(arg, indent) for arg in self.args))
+                f'{dump_or_value(id_, indent)}: {dump_or_value(type_, indent)}'
+                for id_, type_ in zip(self.arg_ids, self.arg_types)))
         result += ':\n'
         return result
 
@@ -931,7 +937,7 @@ class AffineMap(Node):
     _fields_ = ['dims_and_symbols', 'map']
 
     def dump(self, indent: int = 0) -> str:
-        return '%s -> %s' % (dump_or_value(self.dims_and_symbols, indent),
+        return 'affine_map<%s -> %s>' % (dump_or_value(self.dims_and_symbols, indent),
                              dump_or_value(self.map, indent))
 
 

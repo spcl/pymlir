@@ -251,7 +251,7 @@ affine_constraint : affine_expr ">=" "0"    -> affine_constraint_ge
                   | affine_expr "==" "0"    -> affine_constraint_eq
 affine_constraint_conjunction : affine_constraint ("," affine_constraint)*
 
-affine_map_inline      : dim_and_symbol_id_lists "->" multi_dim_affine_expr
+affine_map_inline      : "affine_map" "<" dim_and_symbol_id_lists "->" multi_dim_affine_expr ">"
 semi_affine_map_inline : dim_and_symbol_id_lists "->" multi_dim_semi_affine_expr
 integer_set_inline     : dim_and_symbol_id_lists ":" "(" affine_constraint_conjunction? ")"
 
@@ -259,6 +259,8 @@ integer_set_inline     : dim_and_symbol_id_lists ":" "(" affine_constraint_conju
 affine_map      : map_or_set_id | affine_map_inline
 semi_affine_map : map_or_set_id | semi_affine_map_inline
 integer_set     : map_or_set_id | integer_set_inline
+
+affine_map_list : affine_map ("," affine_map)*
 
 // ----------------------------------------------------------------------
 // General structure and top-level definitions
