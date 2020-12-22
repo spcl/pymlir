@@ -50,6 +50,26 @@ def test_affine_expr_roundtrip():
     assert dump == code
 
 
+def test_loop_dialect_roundtrip():
+    src = """module {
+  func @for(%outer: index, %A: memref<?xf32>, %B: memref<?xf32>, %C: memref<?xf32>, %result: memref<?xf32>) {
+    %c0 = constant 0 : index
+    %c1 = constant 1 : index
+    %d0 = dim %A , %c0 : memref<?xf32>
+    %b0 = affine.min affine_map<()[s0, s1] -> (1024, s0 - s1)> ()[%d0, %outer]
+    scf.for %i0 = %c0 to %b0 step %c1 {
+      %B_elem = load %B [ %i0 ] : memref<?xf32>
+      %C_elem = load %C [ %i0 ] : memref<?xf32>
+      %sum_elem = addf %B_elem , %C_elem : f32
+      store %sum_elem , %result [  %i0 ] : memref<?xf32>
+    }
+    return
+  }
+}"""
+    assert parse_string(src).dump() == src
+
+
 if __name__ == '__main__':
     test_toy_roundtrip()
     test_affine_expr_roundtrip()
+    test_loop_dialect_roundtrip()
