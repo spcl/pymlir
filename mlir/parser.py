@@ -95,12 +95,7 @@ class Parser(object):
         # Transform the tree to our AST node classes
         root_node = self.transformer.transform(tree)
 
-        # If the root node is a function/definition or a list thereof, return
-        # a top-level module
-        if not isinstance(root_node, mast.Module):
-            if isinstance(root_node, Tree) and root_node.data == 'start':
-                return mast.Module([root_node])
-            return mast.Module(root_node)
+        assert isinstance(root_node, mast.MLIRFile)
         return root_node
 
 
