@@ -24,7 +24,7 @@ class CallIndirectOperation(DialectOp):
     _syntax_ = ['call_indirect {func.symbol_ref_id} () : {type.function_type}',
                 'call_indirect {func.symbol_ref_id} ( {args.ssa_use_list} ) : {type.function_type}']
 class DimOperation(DialectOp):
-    _syntax_ = 'dim {operand.ssa_id} , {index.integer_literal} : {type.type}'
+    _syntax_ = 'dim {operand.ssa_id} , {index.ssa_id} : {type.type}'
 
 # Memory Operations
 class AllocOperation(DialectOp):
