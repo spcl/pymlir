@@ -5,6 +5,7 @@ from lark import Token
 from mlir import astnodes
 import parse
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from dataclasses import dataclass, field
 
 
 def _get_fields(syntax: str):
@@ -14,6 +15,7 @@ def _get_fields(syntax: str):
     ]
 
 
+@dataclass
 class DialectElement(astnodes.Node):
     """
     A class that can be extended by a dialect to define an MLIR AST node.
@@ -24,21 +26,23 @@ class DialectElement(astnodes.Node):
     implemented, along with the node field names (stored in ``_fields_``).
     """
 
+    _match: int
+
     # A Python string-format syntax for matching this operation, using a
     # "{name.type}" syntax. The types can either be provided in the dialect
     # preamble, or using the definitions in "mlir.lark". If multiple formats
     # may match, a list can be provided. For example:
     # ['return', 'return {values.ssa_use_list} : {types.type_list_no_parens}']
     # will implement the return operation in the Standard dialect.
-    _syntax_: Optional[Union[str, List[str]]] = None
+    _syntax_: Optional[Union[str, List[str]]] = field(init=False, default=None)
 
     # If custom behavior is defined through the dialect preamble, define rule
     # name on this variable to match this class
-    _rule_: Optional[str] = None
+    _rule_: Optional[str] = field(init=False, default=None)
 
     # Internal fields to be filled by make_rules
-    _syntax_fields_: Optional[List[List[Tuple[str, str]]]] = None
-    _lark_: Optional[List[str]] = None
+    _syntax_fields_: Optional[List[List[Tuple[str, str]]]] = field(init=False, default=None)
+    _lark_: Optional[List[str]] = field(init=False, default=None)
 
     @classmethod
     def make_rules(cls):
@@ -82,31 +86,6 @@ class DialectElement(astnodes.Node):
         cls._fields_ = list(fields)
         cls._syntax_fields_ = compiled_fields
         cls._lark_ = lark_exprs
-
-    def __init__(self, match: int, node: Token = None, **fields):
-        if self._syntax_ is None and node is not None:
-            raise NotImplementedError('Dialect element must either use '
-                                      '"_syntax_" or implement its own '
-                                      'constructor')
-        if node is None:
-            super().__init__(None, **fields)
-            return
-
-        # Get syntax expression
-        self._match = match
-        sfields = self._syntax_fields_[match]
-        other_fields = set(self._fields_) - set(f[0] for f in sfields)
-
-        # Set each field according to defined names
-        if node is not None and isinstance(node, list):
-            for fname, fval in zip(sfields, node):
-                setattr(self, fname[0], fval)
-
-        # Set other fields to None
-        for fname in other_fields:
-            setattr(self, fname, None)
-
-        super().__init__(None, **fields)
 
     def dump(self, indent: int = 0) -> str:
         if self._syntax_ is None:
@@ -191,14 +170,15 @@ def add_dialect_rules(dialect: Dialect, elements: List[Type[DialectElement]],
                               '%s' % elem.__name__)
 
         # Fill contents with procedurally-generated rules
-        for i, rule in enumerate(elem._lark_):
+        for i, (rule, sfields) in enumerate(zip(elem._lark_, elem._syntax_fields_)):
             rule_name = '%s_%s_%s_%d' % (dialect.name, typename,
                                          elem.__name__.lower(), i)
             parser_src += '%s: %s\n' % (rule_name, rule)
 
             # Add rule to transformer
             def create_rule(elem, i):
-                return lambda *value: elem(i, *value)
+                sfield_names = [sfield[0] for sfield in sfields]
+                return lambda value: elem(_match=i, **dict(zip(sfield_names, value)))
 
             rule_dict[rule_name] = create_rule(elem, i)
 
@@ -220,10 +200,12 @@ def is_type(member: Any, module: str) -> bool:
 #################################################################
 # Helper classes for dialects
 
-
+@dataclass
 class UnaryOperation(DialectOp):
     """ Helper class to create unary operations in dialects. """
-    _opname_ = 'UNDEF'
+    operand: Union[astnodes.SsaId, astnodes.StringLiteral, float, int, bool]
+    type: astnodes.Type
+    _opname_: str = field(init=False)
 
     @classmethod
     def make_rules(cls):
@@ -231,9 +213,13 @@ class UnaryOperation(DialectOp):
         super().make_rules()
 
 
+@dataclass
 class BinaryOperation(DialectOp):
     """ Helper class to create binary operations in dialects. """
-    _opname_ = 'UNDEF'
+    operand_a: Union[astnodes.SsaId, astnodes.StringLiteral, float, int, bool]
+    operand_b: Union[astnodes.SsaId, astnodes.StringLiteral, float, int, bool]
+    type: astnodes.Type
+    _opname_: str = field(init=False)
 
     @classmethod
     def make_rules(cls):
