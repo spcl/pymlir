@@ -389,9 +389,6 @@ class IntSetAttr(Attribute):
 class TypeAttr(Attribute):
     value: Any
 
-    def __post_init__(self):
-        import pudb; pu.db
-
     def dump(self, indent: int = 0) -> str:
         return dump_or_value(self.value, indent)
 
