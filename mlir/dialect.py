@@ -34,15 +34,15 @@ class DialectElement(astnodes.Node):
     # may match, a list can be provided. For example:
     # ['return', 'return {values.ssa_use_list} : {types.type_list_no_parens}']
     # will implement the return operation in the Standard dialect.
-    _syntax_: Optional[Union[str, List[str]]] = field(init=False, default=None)
+    _syntax_: Optional[Union[str, List[str]]] = field(init=False, default=None, repr=False)
 
     # If custom behavior is defined through the dialect preamble, define rule
     # name on this variable to match this class
-    _rule_: Optional[str] = field(init=False, default=None)
+    _rule_: Optional[str] = field(init=False, default=None, repr=False)
 
     # Internal fields to be filled by make_rules
-    _syntax_fields_: Optional[List[List[Tuple[str, str]]]] = field(init=False, default=None)
-    _lark_: Optional[List[str]] = field(init=False, default=None)
+    _syntax_fields_: Optional[List[List[Tuple[str, str]]]] = field(init=False, default=None, repr=False)
+    _lark_: Optional[List[str]] = field(init=False, default=None, repr=False)
 
     @classmethod
     def make_rules(cls):
@@ -205,7 +205,7 @@ class UnaryOperation(DialectOp):
     """ Helper class to create unary operations in dialects. """
     operand: Union[astnodes.SsaId, astnodes.StringLiteral, float, int, bool]
     type: astnodes.Type
-    _opname_: str = field(init=False)
+    _opname_: str = field(init=False, repr=False)
 
     @classmethod
     def make_rules(cls):
@@ -219,7 +219,7 @@ class BinaryOperation(DialectOp):
     operand_a: Union[astnodes.SsaId, astnodes.StringLiteral, float, int, bool]
     operand_b: Union[astnodes.SsaId, astnodes.StringLiteral, float, int, bool]
     type: astnodes.Type
-    _opname_: str = field(init=False)
+    _opname_: str = field(init=False, repr=False)
 
     @classmethod
     def make_rules(cls):

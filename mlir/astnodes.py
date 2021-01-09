@@ -28,7 +28,7 @@ class Node(object):
         if is_dataclass(self):
             return self.__dataclass_fields__.keys()
         else:
-            raise AttributeError(f"'self.__class__' object has not attribute '_fields_'")
+            raise AttributeError(f"'{self.__class__}' object has not attribute '_fields_'")
 
     def dump(self, indent: int = 0) -> str:
         """ Dumps the AST node and its children in MLIR format.
@@ -197,7 +197,6 @@ class UnrankedTensorType(TensorType):
         return 'tensor<*x%s>' % self.element_type.dump(indent)
 
 
-@dataclass
 class MemRefType(Type):
     pass
 
@@ -554,7 +553,7 @@ class FileLineColLoc(Location):
 class Module(Node):
     name: Optional[str]
     attributes: Optional[AttributeDict]
-    body: "Region"
+    region: "Region"
     location: Optional[Location] = None
 
     def dump(self, indent=0) -> str:
@@ -564,7 +563,7 @@ class Module(Node):
         if self.attributes:
             result += ' attributes ' + dump_or_value(self.attributes, indent)
 
-        result += self.body.dump(indent)
+        result += self.region.dump(indent)
         if self.location:
             result += ' ' + self.location.dump(indent)
         return result
@@ -576,7 +575,7 @@ class Function(Node):
     args: Optional[List["NamedArgument"]]
     result_types: Optional[List[Type]]
     attributes: Optional[Union[Attribute, AttrAlias]]
-    body: Optional["Region"]
+    region: Optional["Region"]
     location: Optional[Location] = None
 
     def dump(self, indent=0) -> str:
@@ -594,7 +593,7 @@ class Function(Node):
         if self.attributes:
             result += ' attributes ' + dump_or_value(self.attributes, indent)
 
-        result += ' %s' % (self.body.dump(indent) if self.body else '{\n%s}' %
+        result += ' %s' % (self.region.dump(indent) if self.region else '{\n%s}' %
                            (indent * '  '))
         if self.location:
             result += ' ' + self.location.dump(indent)

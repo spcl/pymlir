@@ -23,15 +23,15 @@ class AffineForOp(DialectOp):
     index: ast.SsaId
     begin: Union[ast.SsaId, int]
     end: Union[ast.SsaId, int]
-    body: ast.Region
+    region: ast.Region
     step: Optional[Union[ast.SsaId, int]] = None
     attributes: Optional[ast.Attribute] = None
 
     _syntax_ = [
-        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} {body.region}',
-        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} step {step.symbol_or_const} {body.region}',
-        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} {body.region} {attributes.attribute_dict}',
-        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} step {step.symbol_or_const} {body.region} {attributes.attribute_dict}'
+        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} {region.region}',
+        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} step {step.symbol_or_const} {region.region}',
+        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} {region.region} {attributes.attribute_dict}',
+        'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} step {step.symbol_or_const} {region.region} {attributes.attribute_dict}'
     ]
 
 
