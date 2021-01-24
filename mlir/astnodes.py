@@ -45,10 +45,10 @@ class StringLiteral(Node):
     value: str
 
     def dump(self, indent: int = 0):
-        return self.value
+        return '"%s"' % self.value
 
     def __str__(self):
-        return '"%s"' % self.value
+        return self.dump()
 
 
 ##############################################################################

@@ -176,6 +176,7 @@ class TreeToMlir(Transformer):
     ssa_use_list = list
     op_result_list = list
     successor_list = list
+    ssa_id_and_type = tuple
     ssa_id_and_type_list = tuple
     ssa_use_and_type_list = list
     stride_list = list
@@ -196,6 +197,7 @@ class TreeToMlir(Transformer):
     definition_list = list
     function_list = list
     module_list = list
+    block_arg_list = list
     definition_and_function_list = tuple
     definition_and_module_list = tuple
 
