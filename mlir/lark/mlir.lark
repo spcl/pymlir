@@ -97,7 +97,7 @@ pretty_dialect_item_body : "<" pretty_dialect_item_contents ("," pretty_dialect_
 dialect_type : "!" (pymlir_dialect_types | opaque_dialect_item | pretty_dialect_item)
 
 // Final type definition
-standard_type     : complex_type | float_type | function_type | index_type | integer_type | memref_type | none_type | tensor_type | tuple_type | vector_type
+standard_type     : complex_type | float_type | function_type | llvm_function_type | index_type | integer_type | memref_type | none_type | tensor_type | tuple_type | vector_type
 non_function_type : type_alias | complex_type | float_type | index_type | integer_type | memref_type | none_type | tensor_type | tuple_type | vector_type | dialect_type
 type              : type_alias | dialect_type | standard_type
 
@@ -106,6 +106,7 @@ type_list_no_parens :  type ("," type)*
 type_list_parens : ("(" ")") | ("(" type_list_no_parens ")")
 function_result_type : type_list_parens | type_list_no_parens | non_function_type
 function_type : function_result_type ("->" | "to" | "into") function_result_type
+llvm_function_type : type type_list_parens
 ssa_use_and_type : ssa_use ":" type
 ssa_use_and_type_list : ssa_use_and_type ("," ssa_use_and_type)*
 
@@ -196,12 +197,13 @@ function_result_list_parens : ("(" ")") | ("(" function_result_list_no_parens ")
 function_result_list : function_result_list_parens | non_function_type
 
 // Body
-module_body : "{" (function | module | block)* "}"
+module_body : "{" (function | module | generic_module | block)* "}"
 ?function_body : region
 
 // Definition
 module : "module" symbol_ref_id? ("attributes" attribute_dict)? module_body trailing_location?
 function : "func" function_signature ("attributes" attribute_dict)? function_body? trailing_location?
+generic_module : string_literal "(" ssa_use_list? ")" "(" module_body ")" attribute_dict? trailing_type trailing_location?
 
 // ----------------------------------------------------------------------
 // (semi-)affine expressions, maps, and integer sets
@@ -277,6 +279,7 @@ attribute_alias_def : attribute_alias "=" attribute_value
 ?value : module
        | definition
        | function
+       | generic_module
 
 // Lark imports
 %import common.ESCAPED_STRING

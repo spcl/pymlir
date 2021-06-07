@@ -73,6 +73,7 @@ class TreeToMlir(Transformer):
     opaque_dialect_item = astnodes.OpaqueDialectType
     pretty_dialect_item = astnodes.PrettyDialectType
     function_type = astnodes.FunctionType
+    llvm_function_type = astnodes.LlvmFunctionType
     strided_layout = astnodes.StridedLayout
 
     ###############################################################
@@ -113,6 +114,7 @@ class TreeToMlir(Transformer):
     block = astnodes.Block
     region = astnodes.Region
     module = astnodes.Module
+    generic_module = astnodes.GenericModule
     function = astnodes.Function
     named_argument = astnodes.NamedArgument
 
