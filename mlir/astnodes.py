@@ -679,7 +679,7 @@ class AffineExpr(Node):
     pass
 
 
-class SemiAffineExpr(Node):
+class SemiAffineExpr(AffineExpr):
     pass
 
 
@@ -705,7 +705,7 @@ class MultiDimSemiAffineExpr(Node):
 
 # Contents of single/multi-dimensional (semi-)affine expressions
 @dataclass
-class AffineUnaryOp(Node):
+class AffineUnaryOp(AffineExpr):
     operand: AffineExpr
     _op_: str = field(init=False, repr=False)
 
@@ -714,7 +714,7 @@ class AffineUnaryOp(Node):
 
 
 @dataclass
-class AffineBinaryOp(Node):
+class AffineBinaryOp(AffineExpr):
     operand_a: Union[AffineExpr, int]
     operand_b: Union[AffineExpr, int]
     _op_: str = field(init=False, repr=False)
