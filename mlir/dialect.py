@@ -26,7 +26,7 @@ class DialectElement(astnodes.Node):
     implemented, along with the node field names (stored in ``_fields_``).
     """
 
-    _match: int
+    match: int
 
     # A Python string-format syntax for matching this operation, using a
     # "{name.type}" syntax. The types can either be provided in the dialect
@@ -93,8 +93,8 @@ class DialectElement(astnodes.Node):
                                       '"_syntax_" or implement its own '
                                       '"dump" method')
 
-        sfields = self._syntax_fields_[self._match]
-        dump_str = self._syntax_[self._match]
+        sfields = self._syntax_fields_[self.match]
+        dump_str = self._syntax_[self.match]
         for fname, ftype in sfields:
             dump_str = dump_str.replace('{%s.%s}' % (fname, ftype),
                                         '{%s}' % fname)
@@ -178,7 +178,7 @@ def add_dialect_rules(dialect: Dialect, elements: List[Type[DialectElement]],
             # Add rule to transformer
             def create_rule(elem, i):
                 sfield_names = [sfield[0] for sfield in sfields]
-                return lambda value: elem(_match=i, **dict(zip(sfield_names, value)))
+                return lambda value: elem(match=i, **dict(zip(sfield_names, value)))
 
             rule_dict[rule_name] = create_rule(elem, i)
 
