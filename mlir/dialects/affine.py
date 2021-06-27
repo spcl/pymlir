@@ -2,30 +2,30 @@
 
 import inspect
 import sys
-import mlir.astnodes as ast
+import mlir.astnodes as mast
 from mlir.dialect import Dialect, DialectOp, is_op
 from typing import Union, Optional, List
 from dataclasses import dataclass
 
-Literal = Union[ast.StringLiteral, float, int, bool]
-SsaUse = Union[ast.SsaId, Literal]
+Literal = Union[mast.StringLiteral, float, int, bool]
+SsaUse = Union[mast.SsaId, Literal]
 
 
 @dataclass
 class AffineApplyOp(DialectOp):
-    map: ast.AffineMap
-    args: ast.DimAndSymbolList
+    map: mast.AffineMap
+    args: mast.DimAndSymbolList
     _syntax_ = 'affine.apply {map.affine_map} {args.dim_and_symbol_use_list}'
 
 
 @dataclass
 class AffineForOp(DialectOp):
-    index: ast.SsaId
-    begin: Union[ast.SsaId, int]
-    end: Union[ast.SsaId, int]
-    region: ast.Region
-    step: Optional[Union[ast.SsaId, int]] = None
-    attributes: Optional[ast.Attribute] = None
+    index: mast.SsaId
+    begin: Union[mast.SsaId, int]
+    end: Union[mast.SsaId, int]
+    region: mast.Region
+    step: Optional[Union[mast.SsaId, int]] = None
+    attributes: Optional[mast.Attribute] = None
 
     _syntax_ = [
         'affine.for {index.ssa_id} = {begin.symbol_or_const} to {end.symbol_or_const} {region.region}',
@@ -37,10 +37,10 @@ class AffineForOp(DialectOp):
 
 @dataclass
 class AffineIfOp(DialectOp):
-    cond: ast.MapOrSetId
+    cond: mast.MapOrSetId
     operands: List[SsaUse]
-    body: ast.Region
-    elsebody: Optional[ast.Region] = None
+    body: mast.Region
+    elsebody: Optional[mast.Region] = None
 
     _syntax_ = ['affine.if {cond.map_or_set_id} ( {operands.ssa_use_list} ) {body.region}',
                 'affine.if {cond.map_or_set_id} ( {operands.ssa_use_list} ) {body.region} else {elsebody.region}']
@@ -49,8 +49,8 @@ class AffineIfOp(DialectOp):
 @dataclass
 class AffineLoadOp(DialectOp):
     arg: SsaUse
-    index: ast.MultiDimAffineExpr
-    type: ast.MemRefType
+    index: mast.MultiDimAffineExpr
+    type: mast.MemRefType
     _syntax_ = 'affine.load {arg.ssa_use} [ {index.multi_dim_affine_expr_no_parens} ] : {type.memref_type}'
 
 
@@ -58,26 +58,26 @@ class AffineLoadOp(DialectOp):
 class AffineStoreOp(DialectOp):
     addr: SsaUse
     ref: SsaUse
-    index: ast.MultiDimAffineExpr
-    type: ast.MemRefType
+    index: mast.MultiDimAffineExpr
+    type: mast.MemRefType
     _syntax_ = 'affine.store {addr.ssa_use} , {ref.ssa_use} [ {index.multi_dim_affine_expr_no_parens} ] : {type.memref_type}'
 
 
 @dataclass
 class AffineMinOp(DialectOp):
-    map: ast.AffineMap
-    operands: ast.DimAndSymbolList
+    map: mast.AffineMap
+    operands: mast.DimAndSymbolList
     _syntax_ = 'affine.min {map.affine_map_inline} {operands.dim_and_symbol_use_list}'
 
 
 @dataclass
 class AffinePrefetchOp(DialectOp):
     arg: SsaUse
-    index: ast.MultiDimAffineExpr
-    specifier: ast.Identifier
+    index: mast.MultiDimAffineExpr
+    specifier: mast.Identifier
     locality: int
-    cachetype: ast.Identifier
-    type: ast.Type
+    cachetype: mast.Identifier
+    type: mast.Type
     _syntax_ = 'affine.prefetch {arg.ssa_use} [ {index.multi_dim_affine_expr_no_parens} ] , {specifier.bare_id} , locality < {locality.integer_literal} > , {cachetype.bare_id} : {type.type}'
 
 
@@ -90,9 +90,9 @@ class AffineDmaStartOperation(DialectOp):
     size: SsaUse
     tag: SsaUse
     tag_index: List[SsaUse]
-    src_type: ast.MemRefType
-    dst_type: ast.MemRefType
-    tag_type: ast.MemRefType
+    src_type: mast.MemRefType
+    dst_type: mast.MemRefType
+    tag_type: mast.MemRefType
     stride: Optional[SsaUse] = None
     transfer_per_stride: Optional[SsaUse] = None
 
@@ -105,9 +105,9 @@ class AffineDmaStartOperation(DialectOp):
 @dataclass
 class AffineDmaWaitOperation(DialectOp):
     tag: SsaUse
-    tag_index: ast.MultiDimAffineExpr
+    tag_index: mast.MultiDimAffineExpr
     size: SsaUse
-    type: ast.MemRefType
+    type: mast.MemRefType
 
     _syntax_ = 'affine.dma_wait {tag.ssa_use} [ {tag_index.multi_dim_affine_expr_no_parens} ] , {size.ssa_use} : {type.memref_type}'
 

@@ -37,14 +37,14 @@ is then performed as follows:
 
     from mlir.dialect import DialectOp, DialectType
     from dataclasses import dataclass
-    import mlir.astnodes as ast
+    import mlir.astnodes as mast
 
     @dataclass
     class RaggedTensorType(DialectType):
         """ AST node class for the example "toy" dialect representing a ragged tensor. """
-       implementation: ast.StringLiteral
-       dims: List[ast.Dimension]
-       type: Union[ast.TensorType, ast.MemRefType]
+       implementation: mast.StringLiteral
+       dims: List[mast.Dimension]
+       type: Union[mast.TensorType, mast.MemRefType]
         _syntax_ = ('toy.ragged < {implementation.string_literal} , {dims.dimension_list_ranked} '
                     '{type.tensor_memref_element_type} >')
 

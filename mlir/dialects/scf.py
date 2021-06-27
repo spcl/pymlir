@@ -3,27 +3,27 @@
 import inspect
 import sys
 from mlir.dialect import Dialect, DialectOp, is_op, UnaryOperation
-import mlir.astnodes as ast
+import mlir.astnodes as mast
 from dataclasses import dataclass
 from typing import Optional
 
 
 @dataclass
 class SCFForOp(DialectOp):
-    index: ast.SsaId
-    begin: ast.SsaId
-    end: ast.SsaId
-    body: ast.Region
-    step: Optional[ast.SsaId] = None
+    index: mast.SsaId
+    begin: mast.SsaId
+    end: mast.SsaId
+    body: mast.Region
+    step: Optional[mast.SsaId] = None
     _syntax_ = ['scf.for {index.ssa_id} = {begin.ssa_id} to {end.ssa_id} {body.region}',
                 'scf.for {index.ssa_id} = {begin.ssa_id} to {end.ssa_id} step {step.ssa_id} {body.region}']
 
 
 @dataclass
 class SCFIfOp(DialectOp):
-    cond: ast.SsaId
-    body: ast.Region
-    elsebody: Optional[ast.Region] = None
+    cond: mast.SsaId
+    body: mast.Region
+    elsebody: Optional[mast.Region] = None
     _syntax_ = ['scf.if {cond.ssa_id} {body.region}',
                 'scf.if {cond.ssa_id} {body.region} else {elsebody.region}']
 
