@@ -34,7 +34,7 @@ class Node(object):
         """ Dumps the AST node and its children in MLIR format.
             :return: String representing the AST in MLIR.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def pretty(self):
         return self.dump()
@@ -71,7 +71,7 @@ class SsaId(Identifier):
 
     def dump(self, indent: int = 0) -> str:
         if self.op_no:
-            return self._prefix_ + self.value + ("#%s" % self.op_no)
+            return self._prefix_ + self.value + ('#%s' % self.op_no)
         return self._prefix_ + self.value
 
 
@@ -117,7 +117,6 @@ class NoneType(Type):
         return 'none'
 
 
-@dataclass
 class FloatTypeEnum(Enum):
     f16 = "f16"
     bf16 = "bf16"
@@ -386,7 +385,7 @@ class IntSetAttr(Attribute):
 
 @dataclass
 class TypeAttr(Attribute):
-    value: Any
+    value: type
 
     def dump(self, indent: int = 0) -> str:
         return dump_or_value(self.value, indent)
