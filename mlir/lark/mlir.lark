@@ -101,7 +101,7 @@ pretty_dialect_item_body : "<" pretty_dialect_item_contents ("," pretty_dialect_
 dialect_type : "!" (pymlir_dialect_types | opaque_dialect_item | pretty_dialect_item)
 
 // Final type definition
-standard_type     : complex_type | float_type | function_type | index_type | integer_type | memref_type | none_type | tensor_type | tuple_type | vector_type
+standard_type     : complex_type | float_type | function_type | llvm_function_type | index_type | integer_type | memref_type | none_type | tensor_type | tuple_type | vector_type
 non_function_type : type_alias | complex_type | float_type | index_type | integer_type | memref_type | none_type | tensor_type | tuple_type | vector_type | dialect_type
 type              : type_alias | dialect_type | standard_type
 
@@ -110,6 +110,7 @@ type_list_no_parens :  type ("," type)*
 type_list_parens : ("(" ")") | ("(" type_list_no_parens ")")
 function_result_type : type_list_parens | type_list_no_parens | non_function_type
 function_type : function_result_type ("->" | "to" | "into") function_result_type
+llvm_function_type : type type_list_parens
 ssa_use_and_type : ssa_use ":" type
 ssa_use_and_type_list : ssa_use_and_type ("," ssa_use_and_type)*
 
@@ -171,7 +172,7 @@ custom_operation  : bare_id "." bare_id optional_ssa_use_list trailing_type
 
 // Final operation definition
 // NOTE: "pymlir_dialect_ops" is defined externally by pyMLIR
-operation         : optional_op_result_list (pymlir_dialect_ops | custom_operation | generic_operation | module | function) optional_trailing_loc
+operation         : optional_op_result_list (pymlir_dialect_ops | custom_operation | generic_operation | module | generic_module | function) optional_trailing_loc
 
 // ----------------------------------------------------------------------
 // Blocks and regions
@@ -229,6 +230,7 @@ function_result_list_parens : ("(" ")") | ("(" function_result_list_no_parens ")
 // Definition
 module : "module" optional_symbol_ref_id optional_func_mod_attrs region optional_trailing_loc
 function : "func" symbol_ref_id "(" optional_arg_list ")" optional_fn_result_list optional_func_mod_attrs optional_fn_body optional_trailing_loc
+generic_module : string_literal "(" optional_arg_list ")" "(" region ")" optional_attr_dict trailing_type optional_trailing_loc
 
 // ----------------------------------------------------------------------
 // (semi-)affine expressions, maps, and integer sets
@@ -307,7 +309,7 @@ attribute_alias_def : attribute_alias "=" attribute_value
 
 definition_list              : definition*
 function_list                : function*
-module_list                  : module*
+module_list                  : (module | generic_module)*
 definition_and_function_list : definition_list function_list
 definition_and_module_list   : definition_list module_list
 

@@ -201,6 +201,36 @@ def test_definitions(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
+def test_generic_dialect_std(parser: Optional[Parser] = None):
+    code = '''
+"module"() ( {
+  "func"() ( {
+  ^bb0(%arg0: i32, %arg1: i32):  // no predecessors
+    %0 = "std.addi"(%arg1, %arg0) : (i32, i32) -> i32
+    "std.return"(%0) : (i32) -> ()
+  }) {sym_name = "mlir_entry", type = (i32, i32) -> i32} : () -> ()
+}) : () -> ()
+    '''
+    parser = parser or Parser()
+    module = parser.parse(code)
+    print(module.pretty())
+
+
+def test_generic_dialect_llvm(parser: Optional[Parser] = None):
+    code = '''
+"module"() ( {
+  "llvm.func"() ( {
+  ^bb0(%arg0: i32, %arg1: i32):  // no predecessors
+    %0 = "llvm.add"(%arg1, %arg0) : (i32, i32) -> i32
+    "llvm.return"(%0) : (i32) -> ()
+  }) {linkage = 10 : i64, sym_name = "mlir_entry", type = !llvm.func<i32 (i32, i32)>} : () -> ()
+}) : () -> ()
+    '''
+    parser = parser or Parser()
+    module = parser.parse(code)
+    print(module.pretty())
+
+
 def test_integer_sign(parser: Optional[Parser] = None):
     code = '''
 func @integer_test(%a: si16, %b: ui32, %c: i7) {
@@ -224,4 +254,6 @@ if __name__ == '__main__':
     test_toplevel_functions(p)
     test_affine(p)
     test_definitions(p)
+    test_generic_dialect_std(p)
+    test_generic_dialect_llvm(p)
     test_integer_sign(p)

@@ -296,6 +296,19 @@ class FunctionType(Type):
         return result
 
 
+@dataclass
+class LlvmFunctionType(Type):
+    result_type: Type
+    argument_types: List[Type]
+
+    def dump(self, indent: int = 0) -> str:
+        result = dump_or_value(self.result_type) + ''
+        if self.argument_types:
+            result += ' (%s)' % ', '.join(
+                dump_or_value(arg, indent) for arg in self.argument_types)
+        return result
+
+
 ##############################################################################
 # Attributes
 
@@ -562,22 +575,51 @@ class FileLineColLoc(Location):
 ##############################################################################
 # Modules, functions, and blocks
 
+class ModuleType(Node):
+    pass
 
 @dataclass
-class Module(Node):
+class Module(ModuleType):
     name: Optional[str]
     attributes: Optional[AttributeDict]
     region: "Region"
     location: Optional[Location] = None
 
     def dump(self, indent=0) -> str:
-        result = indent * '  ' + 'module '
+        result = 'module '
         if self.name:
             result += '%s ' % self.name.dump(indent)
         if self.attributes:
             result += ' attributes ' + dump_or_value(self.attributes, indent)
 
         result += self.region.dump(indent)
+        if self.location:
+            result += ' ' + self.location.dump(indent)
+        return result
+
+
+@dataclass
+class GenericModule(ModuleType):
+    name: str
+    args: List["NamedArgument"]
+    region: "Region"
+    attributes: Optional[AttributeDict]
+    type: List[Type]
+    location: Optional[Location] = None
+
+    def dump(self, indent=0) -> str:
+        result = dump_or_value(self.name, indent)
+        result += '('
+        if self.args:
+            result += ' %s' % ', '.join(
+                dump_or_value(arg, indent) for arg in self.args)
+        result += ')'
+        result += ' ( '
+        result += self.region.dump(indent)
+        result += ')'
+        if self.attributes:
+            result += ' ' + dump_or_value(self.attributes, indent)
+        result += ' : ' + self.type.dump(indent)
         if self.location:
             result += ' ' + self.location.dump(indent)
         return result
@@ -616,7 +658,7 @@ class Function(Node):
 
 @dataclass
 class Region(Node):
-    body: List[Operation]
+    body: List['Block']
 
     def dump(self, indent=0) -> str:
         return ('{\n' + '\n'.join(
@@ -689,6 +731,7 @@ class MLIRFile(Node):
 
 ##############################################################################
 # Affine and semi-affine expressions
+
 
 # Types of affine expressions
 class AffineExpr(Node):
@@ -813,6 +856,7 @@ class IntSet(Node):
 
 ##############################################################################
 # Top-level definitions
+
 
 @dataclass
 class Definition(Node):
