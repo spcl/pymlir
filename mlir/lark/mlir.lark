@@ -59,8 +59,11 @@ ssa_use_list : ssa_use ("," ssa_use)*
 none_type : "none"
 !float_type : "f16" | "bf16" | "f32" | "f64"
 index_type : "index"
-inttype_width: /[1-9][0-9]*/
-integer_type : "i" inttype_width  // Sized integers like i1, i4, i8, i16, i32.
+inttype_width: /[1-9][0-9]*/  // Sized integers like i1, i4, i8, i16, i32.
+signed_integer_type : "si" inttype_width
+unsigned_integer_type : "ui" inttype_width
+signless_integer_type : "i" inttype_width
+integer_type : signed_integer_type | unsigned_integer_type | signless_integer_type
 complex_type : "complex" "<" type ">"
 tuple_type : "tuple" "<" type_list_no_parens ">"
 
