@@ -145,7 +145,7 @@ class StoreOperation(DialectOp):
     ref: SsaUse
     index: List[SsaUse]
     type: mast.MemRefType
-    _syntax_ = 'store {addr.ssa_use} , {ref.ssa_use} [  {index.ssa_use_list} ] : {type.memref_type}'
+    _syntax_ = 'store {addr.ssa_use} , {ref.ssa_use} [ {index.ssa_use_list} ] : {type.memref_type}'
 
 
 @dataclass
