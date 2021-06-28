@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/spcl/pymlir.svg?branch=master)](https://travis-ci.org/spcl/pymlir)
 [![codecov](https://codecov.io/gh/spcl/pymlir/branch/master/graph/badge.svg)](https://codecov.io/gh/spcl/pymlir)
 
 
