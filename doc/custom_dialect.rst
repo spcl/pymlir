@@ -36,9 +36,15 @@ is then performed as follows:
 .. code-block:: python
 
     from mlir.dialect import DialectOp, DialectType
+    from dataclasses import dataclass
+    import mlir.astnodes as mast
 
+    @dataclass
     class RaggedTensorType(DialectType):
         """ AST node class for the example "toy" dialect representing a ragged tensor. """
+       implementation: mast.StringLiteral
+       dims: List[mast.Dimension]
+       type: Union[mast.TensorType, mast.MemRefType]
         _syntax_ = ('toy.ragged < {implementation.string_literal} , {dims.dimension_list_ranked} '
                     '{type.tensor_memref_element_type} >')
 
@@ -53,8 +59,12 @@ or operation, and if fields are not defined they will be set as ``None``. Exampl
 
 .. code-block:: python
 
+    @dataclass
     class DensifyOp(DialectOp):
         """ AST node for an operation with an optional value. """
+        arg: SsaId
+        type: TensorType
+        pad: Optional[Union[StringLiteral, float, int, bool]] = None
         _syntax_ = ['toy.densify {arg.ssa_id} : {type.tensor_type}',
                     'toy.densify {arg.ssa_id} , {pad.constant_literal} : {type.tensor_type}']
 
@@ -108,17 +118,12 @@ our custom rule for parsing, we would implement the class in the following way:
         _lark_ = ['"toy.ragged" "<" (string_literal ",")? dimension_list_ranked '
                   'tensor_memref_element_type ">"']
 
-        def __init__(self, match: int, node: List[Union[Tree, Node]], **fields):
-            # Note that since _lark_ has only one element, "match" will always be 0
-            if len(node) == 2:  # Only dims and type were defined
-                self.implementation = None
-                self.dims = node[0]
-                self.type = node[1]
-            elif len(node) == 3:  # All three fields were defined
-                self.implementation = node[0]
-                self.dims = node[1]
-                self.type = node[2]
-            super().__init__(None, **fields)
+        def __init__(self, match: int, dims, type, implementation = None):
+            # Note that since _lark_ has only one element, "match" should always be 0
+            self.match = match
+            self.type = type
+            self.dims = dims
+            self.implementation = implementation
 
         def dump(self, indent: int = 0) -> str:
             # Note the exclamation mark denoting a dialect type

@@ -1,17 +1,24 @@
 """ Test that creates and uses a custom dialect. """
 
+from typing import List, Union, Optional
 from mlir import parse_string
-from mlir.astnodes import Node, dump_or_value
+from mlir.astnodes import Node, dump_or_value, SsaId, StringLiteral, TensorType, MemRefType, Dimension
 from mlir.dialect import Dialect, DialectOp, DialectType
+from dataclasses import dataclass
 
 
 ##############################################################################
 # Dialect Types
 
+@dataclass
 class RaggedTensorType(DialectType):
     """
     AST node class for the example "toy" dialect representing a ragged tensor.
     """
+    implementation: "ToyImplementation"
+    dims: List[Dimension]
+    type: Union[TensorType, MemRefType]
+
     _syntax_ = 'toy.ragged < {implementation.toy_impl_list} , {dims.dimension_list_ranked} {type.tensor_memref_element_type} >'
 
     # Custom MLIR serialization implementation
@@ -29,9 +36,8 @@ class ToyImplementation(Node):
     """
     _fields_ = ['values']
 
-    def __init__(self, node=None, **fields):
-        self.values = node
-        super().__init__(None, **fields)
+    def __init__(self, values: List[str]):
+        self.values = values
 
     def dump(self, indent: int = 0) -> str:
         return '+'.join(dump_or_value(v, indent) for v in self.values)
@@ -40,8 +46,12 @@ class ToyImplementation(Node):
 ##############################################################################
 # Dialect Operations
 
+@dataclass
 class DensifyOp(DialectOp):
     """ AST node for an operation with an optional value. """
+    arg: SsaId
+    type: TensorType
+    pad: Optional[Union[StringLiteral, float, int, bool]] = None
     _syntax_ = ['toy.densify {arg.ssa_id} : {type.tensor_type}',
                 'toy.densify {arg.ssa_id} , {pad.constant_literal} : {type.tensor_type}']
 

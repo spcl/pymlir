@@ -63,7 +63,7 @@ def test_transformer(parser: Optional[Parser] = None):
     class RemoveAllResultOps(NodeTransformer):
         def visit_Operation(self, node: astnodes.Operation):
             # There are one or more outputs, return None to remove from AST
-            if len(node.result_list) > 0:
+            if node.result_list:
                 return None
 
             # No outputs, no need to do anything
@@ -80,7 +80,7 @@ def test_transformer(parser: Optional[Parser] = None):
             self.fail = False
 
         def visit_Operation(self, node: astnodes.Operation):
-            if len(node.result_list) > 0:
+            if node.result_list:
                 self.fail = True
             return self.generic_visit(node)
 
