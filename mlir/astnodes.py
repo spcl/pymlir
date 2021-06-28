@@ -734,12 +734,39 @@ class MLIRFile(Node):
 
 
 # Types of affine expressions
+# Contents of single/multi-dimensional (semi-)affine expressions
 class AffineExpr(Node):
-    pass
+    # TODO: Inserts a lot of "AffineParens" that  leading to a generated with high
+    # SNR. Should solve this by strategically placing the parens so that the
+    # precedence isn't violated.
+    def __add__(self, other: Union["AffineExpr", int]):
+        return AffineParens(AffineAdd(operand_a=self, operand_b=other))
+
+    def __sub__(self, other: Union["AffineExpr", int]):
+        return AffineParens(AffineSub(operand_a=self, operand_b=other))
+
+    def __mul__(self, other: int):
+        return AffineParens(AffineMul(operand_a=self, operand_b=other))
+
+    def __neg__(self):
+        return AffineParens(AffineNeg(operand=self))
+
+    def __radd__(self, other: Union["AffineExpr", int]):
+        return AffineParens(AffineAdd(operand_a=other, operand_b=self))
+
+    def __rsub__(self, other: Union["AffineExpr", int]):
+        return AffineParens(AffineSub(operand_a=other, operand_b=self))
+
+    def __rmul__(self, other: int):
+        return AffineParens(AffineMul(operand_a=other, operand_b=self))
 
 
 class SemiAffineExpr(AffineExpr):
-    pass
+    def __floordiv__(self, other: int):
+        return AffineParens(AffineFloorDiv(operand_a=self, operand_b=other))
+
+    def __mod__(self, other: int):
+        return AffineParens(AffineMod(operand_a=self, operand_b=other))
 
 
 @dataclass
@@ -762,7 +789,18 @@ class MultiDimSemiAffineExpr(Node):
         return '(%s)' % dump_or_value(self.dims, indent)
 
 
-# Contents of single/multi-dimensional (semi-)affine expressions
+class AffineSsa(SsaId, AffineExpr):
+    pass
+
+
+@dataclass
+class AffineDimOrSymbol(AffineExpr):
+    value: str
+
+    def dump(self, indent: int = 0) -> str:
+        return self.value
+
+
 @dataclass
 class AffineUnaryOp(AffineExpr):
     operand: AffineExpr
