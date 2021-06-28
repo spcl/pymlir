@@ -658,7 +658,7 @@ class Function(Node):
 
 @dataclass
 class Region(Node):
-    body: List[Operation]
+    body: List['Block']
 
     def dump(self, indent=0) -> str:
         return ('{\n' + '\n'.join(

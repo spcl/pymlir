@@ -255,8 +255,11 @@ class TreeToMlir(Transformer):
         if len(fns) == 0:
             return astnodes.MLIRFile(defns, [])
         else:
-            return astnodes.MLIRFile(defns, [astnodes.Module(None, None, astnodes.Region(fns))])
-
+            fns = [astnodes.Operation([], fn) for fn in fns]
+            return astnodes.MLIRFile(defns, [
+                astnodes.Module(None, None,
+                                astnodes.Region([astnodes.Block(None, fns)]))
+            ])
 
     def mlir_file_as_definition_and_module_list(self, defns_and_mods):
         assert isinstance(defns_and_mods, list)
