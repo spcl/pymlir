@@ -2,104 +2,76 @@
     MLIR. """
 
 from enum import Enum, auto
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
 from lark import Token
+from lark.tree import Tree
+from dataclasses import dataclass, field, is_dataclass
 
 
 class Node(object):
     """ Base MLIR AST node object. """
-
-    # Static field defining which fields should be used in this node
-    _fields_: List[str] = []
-
-    def __init__(self, node: Token = None, **fields):
-        # Set each field separately
-        if node is not None and isinstance(node, list):
-            for fname, fval in zip(self._fields_, node):
-                setattr(self, fname, fval)
-
-        # Set the defined fields
-        for k, v in fields.items():
-            setattr(self, k, v)
+    @classmethod
+    def from_lark(cls, args: List[Any]):
+        assert isinstance(args, list)
+        # ensure that no lark objects creep into our AST
+        assert not any(isinstance(el, (Token, Tree)) for el in args)
+        return cls(*args)
 
     def dump_ast(self) -> str:
-        """ Dumps the AST node and its fields in raw AST format. For example:
-            Module(name="example", body=[])
+        from warnings import warn
+        warn("dump_ast is deprecated, simply call 'repr' on the object",
+             DeprecationWarning, stacklevel=2)
+        return repr(self)
 
-            :note: Due to the way objects are constructed, this format can be
-                   parsed back by Python to the same AST.
-            :return: String representing the AST in its raw format.
-        """
-        return (type(self).__name__ + '(' + ', '.join(
-            f + '=' + _dump_ast_or_value(getattr(self, f))
-            for f in self._fields_) + ')')
+    @property
+    def _fields_(self) -> List[str]:
+        if is_dataclass(self):
+            return self.__dataclass_fields__.keys()
+        else:
+            raise AttributeError(f"'{self.__class__}' object has not attribute '_fields_'")
 
     def dump(self, indent: int = 0) -> str:
         """ Dumps the AST node and its children in MLIR format.
             :return: String representing the AST in MLIR.
         """
-        return '<UNIMPLEMENTED>'
-
-    def __repr__(self):
-        return (type(self).__name__ + '(' + ', '.join(
-            f + '=' + str(getattr(self, f)) for f in self._fields_) + ')')
+        raise NotImplementedError
 
     def pretty(self):
         return self.dump()
-        # result = self.dump_ast()
-        # lines = ['']
-        # indent = 0
-        # for char in result:
-        #     if char == '[':
-        #         indent += 1
-        #     if char == ']':
-        #         indent -= 1
-        #     if char != '\n':
-        #         lines[-1] += char
-        #     if char in '[\n':
-        #         lines.append(indent * '  ')
-        #
-        # return '\n'.join(lines)
 
 
-class StringLiteral(object):
-    def __init__(self, value: str):
-        self.value = value
+@dataclass
+class StringLiteral(Node):
+    value: str
+
+    def dump(self, indent: int = 0):
+        return '"%s"' % self.value
 
     def __str__(self):
-        return '"%s"' % self.value
-
-    def __repr__(self):
-        return '"%s"' % self.value
+        return self.dump()
 
 
 ##############################################################################
 # Identifiers
 
-
+@dataclass
 class Identifier(Node):
-    _fields_ = ['value']
-
-    # Static field representing the prefix of this identifier. Used for ease
-    # of MLIR output
-    _prefix_: str = ''
+    value: str
+    _prefix_: str = field(init=False, default='', repr=False)
 
     def dump(self, indent: int = 0) -> str:
         return self._prefix_ + self.value
 
 
+@dataclass
 class SsaId(Identifier):
-    _fields_ = ['value', 'index']
-    _prefix_ = '%'
-
-    def __init__(self, node: Token = None, **fields):
-        self.value = node[0]
-        self.index = node[1] if len(node) > 1 else None
-        super().__init__(None, **fields)
+    value: str
+    op_no: Optional[int] = None
+    _prefix_: str = field(init=False, default='%', repr=False)
 
     def dump(self, indent: int = 0) -> str:
-        if self.index:
-            return self._prefix_ + self.value + ("#%s" % self.index)
+        if self.op_no:
+            return self._prefix_ + self.value + ('#%s' % self.op_no)
         return self._prefix_ + self.value
 
 
@@ -131,79 +103,84 @@ class Type(Node):
     pass
 
 
+@dataclass
 class Dimension(Type):
-    _fields_ = ['value']
-
-    def __init__(self, node: Token = None, **fields):
-        self.value = None
-        try:
-            if isinstance(node[0], int):
-                self.value = node[0]
-        except (IndexError, TypeError):
-            pass  # In case of an unknown size
-
-        super().__init__(None, **fields)
+    value: Optional[int] = None
 
     def dump(self, indent: int = 0) -> str:
-        return str(self.value or '?')
+        return "?" if self.value is None else str(self.value)
 
 
+@dataclass
 class NoneType(Type):
     def dump(self, indent: int = 0) -> str:
         return 'none'
 
 
 class FloatTypeEnum(Enum):
-    f16 = auto()
-    bf16 = auto()
-    f32 = auto()
-    f64 = auto()
+    f16 = "f16"
+    bf16 = "bf16"
+    f32 = "f32"
+    f64 = "f64"
 
 
+@dataclass
 class FloatType(Type):
-    _fields_ = ['type']
-
-    def __init__(self, node: Token = None, **fields):
-        super().__init__(node, **fields)
-        if 'type' not in fields:
-            self.type = FloatTypeEnum[node[0]]
+    type: FloatTypeEnum
 
     def dump(self, indent: int = 0) -> str:
         return self.type.name
 
 
+@dataclass
 class IndexType(Type):
     def dump(self, indent: int = 0) -> str:
         return 'index'
 
 
+@dataclass
 class IntegerType(Type):
-    _fields_ = ['width']
+    width: int
 
+
+@dataclass
+class SignedIntegerType(IntegerType):
+    def dump(self, indent: int = 0) -> str:
+        return 'si' + str(self.width)
+
+
+@dataclass
+class UnsignedIntegerType(IntegerType):
+    def dump(self, indent: int = 0) -> str:
+        return 'ui' + str(self.width)
+
+
+@dataclass
+class SignlessIntegerType(IntegerType):
     def dump(self, indent: int = 0) -> str:
         return 'i' + str(self.width)
 
 
+@dataclass
 class ComplexType(Type):
-    _fields_ = ['type']
+    type: Type
 
     def dump(self, indent: int = 0) -> str:
         return 'complex<%s>' % self.type.dump(indent)
 
 
+@dataclass
 class TupleType(Type):
-    _fields_ = ['types']
-
-    def __init__(self, node: Token = None, **fields):
-        self.types = node
-        super().__init__(None, **fields)
+    types: List[Type]
 
     def dump(self, indent: int = 0) -> str:
         return 'tuple<%s>' % dump_or_value(self.types, indent)
 
 
+@dataclass
 class VectorType(Type):
-    _fields_ = ['dimensions', 'element_type']
+    dimensions: int
+    element_type: Union[IntegerType, FloatType]
 
     def dump(self, indent: int = 0) -> str:
         return 'vector<%s>' % ('x'.join(
@@ -211,8 +188,14 @@ class VectorType(Type):
             for t in self.dimensions) + 'x' + self.element_type.dump(indent))
 
 
-class RankedTensorType(Type):
-    _fields_ = ['dimensions', 'element_type']
+class TensorType(Type):
+    pass
+
+
+@dataclass
+class RankedTensorType(TensorType):
+    dimensions: List[Dimension]
+    element_type: Union[IntegerType, FloatType, ComplexType, VectorType]
 
     def dump(self, indent: int = 0) -> str:
         return 'tensor<%s>' % ('x'.join(
@@ -220,32 +203,34 @@ class RankedTensorType(Type):
             for t in self.dimensions) + 'x' + self.element_type.dump(indent))
 
 
-class UnrankedTensorType(Type):
-    _fields_ = ['element_type']
-
-    def __init__(self, node: Token = None, **fields):
-        # Ignore unranked dimension list
-        super().__init__(node[1:], **fields)
+@dataclass
+class UnrankedTensorType(TensorType):
+    element_type: Union[IntegerType, FloatType, ComplexType, VectorType]
 
     def dump(self, indent: int = 0) -> str:
         return 'tensor<*x%s>' % self.element_type.dump(indent)
 
 
-class RankedMemRefType(Type):
-    _fields_ = ['dimensions', 'element_type', 'layout', 'space']
+class MemRefType(Type):
+    pass
 
-    def __init__(self, node: Token = None, **fields):
-        self.dimensions = node[0]
-        self.element_type = node[1]
-        self.layout = None
-        self.space = None
-        if len(node) > 2:
-            if node[2].data == 'memory_space':
-                self.space = node[2].children[0]
-            elif node[2].data == 'layout_specification':
-                self.layout = node[2].children[0]
 
-        super().__init__(None, **fields)
+@dataclass
+class StridedLayout(Node):
+    offset: int = 0
+    strides: Optional[List[int]] = None
+
+    def dump(self, indent: int = 0) -> str:
+        return 'offset: %s, strides: [%s]' % (dump_or_value(
+            self.offset, indent), dump_or_value(self.strides, indent))
+
+
+@dataclass
+class RankedMemRefType(MemRefType):
+    dimensions: List[Dimension]
+    element_type: Union[IntegerType, FloatType, ComplexType, VectorType]
+    layout: Optional[StridedLayout] = None
+    space: Optional[int] = None
 
     def dump(self, indent: int = 0) -> str:
         result = 'memref<%s' % ('x'.join(t.dump(indent)
@@ -260,16 +245,10 @@ class RankedMemRefType(Type):
         return result + '>'
 
 
-class UnrankedMemRefType(Type):
-    _fields_ = ['element_type', 'space']
-
-    def __init__(self, node: Token = None, **fields):
-        self.element_type = node[0]
-        self.space = None
-        if len(node) > 1:
-            self.space = node[1].children[0]
-
-        super().__init__(None, **fields)
+@dataclass
+class UnrankedMemRefType(MemRefType):
+    element_type: Union[IntegerType, FloatType, ComplexType, VectorType]
+    space: Optional[int] = None
 
     def dump(self, indent: int = 0) -> str:
         result = 'memref<%s' % ('*x' + self.element_type.dump(indent))
@@ -279,23 +258,29 @@ class UnrankedMemRefType(Type):
         return result + '>'
 
 
+@dataclass
 class OpaqueDialectType(Type):
-    _fields_ = ['dialect', 'contents']
+    dialect: str
+    contents: str
 
     def dump(self, indent: int = 0) -> str:
         return '!%s<"%s">' % (self.dialect, self.contents)
 
-
+@dataclass
 class PrettyDialectType(Type):
-    _fields_ = ['dialect', 'type', 'body']
+    dialect: str
+    type: str
+    body: List[str]
 
     def dump(self, indent: int = 0) -> str:
         return '!%s.%s<%s>' % (self.dialect, self.type, ', '.join(
             dump_or_value(item, indent) for item in self.body))
 
 
+@dataclass
 class FunctionType(Type):
-    _fields_ = ['argument_types', 'result_types']
+    argument_types: List[Type]
+    result_types: List[Type]
 
     def dump(self, indent: int = 0) -> str:
         result = '(%s)' % ', '.join(
@@ -322,108 +307,59 @@ class LlvmFunctionType(Type):
         return result
 
 
-class StridedLayout(Node):
-    _fields_ = ['offset', 'strides']
-
-    def dump(self, indent: int = 0) -> str:
-        return 'offset: %s, strides: [%s]' % (dump_or_value(
-            self.offset, indent), dump_or_value(self.strides, indent))
-
-
 ##############################################################################
 # Attributes
 
 
-# Attribute entries
-class AttributeEntry(Node):
-    _fields_ = ['name', 'value']
-
-    def __init__(self, node: Token = None, **fields):
-        self.name = node[0]
-        self.value = node[1] if len(node) > 1 else None
-        super().__init__(None, **fields)
-
-    def dump(self, indent: int = 0) -> str:
-        if self.value:
-            return '%s = %s' % (dump_or_value(self.name, indent),
-                                dump_or_value(self.value, indent))
-        return dump_or_value(self.name, indent)
-
-
-class DialectAttributeEntry(Node):
-    _fields_ = ['dialect', 'name', 'value']
-
-    def __init__(self, node: Token = None, **fields):
-        self.dialect = node[0]
-        self.name = node[1]
-        self.value = node[2] if len(node) > 2 else None
-        super().__init__(None, **fields)
-
-    def dump(self, indent: int = 0) -> str:
-        if self.value:
-            return '%s.%s = %s' % (dump_or_value(self.dialect, indent),
-                                   dump_or_value(self.name, indent),
-                                   dump_or_value(self.value, indent))
-        return '%s.%s' % (dump_or_value(self.dialect, indent),
-                          dump_or_value(self.name, indent))
-
-
-class AttributeDict(Node):
-    _fields_ = ['values']
-
-    def __init__(self, node: Token = None, **fields):
-        self.values = node
-        super().__init__(None, **fields)
-
-    def dump(self, indent: int = 0) -> str:
-        return '{%s}' % ', '.join(
-            dump_or_value(v, indent) for v in self.values)
-
-
 # Default attribute implementation
 class Attribute(Node):
-    _fields_ = ['value']
-
-    def dump(self, indent: int = 0) -> str:
-        return dump_or_value(self.value, indent)
+    pass
 
 
+@dataclass
 class ArrayAttr(Attribute):
-    def __init__(self, node: Token = None, **fields):
-        self.value = node
-        super().__init__(None, **fields)
+    value: List[Attribute]
 
     def dump(self, indent: int = 0) -> str:
         return '[%s]' % dump_or_value(self.value, indent)
 
 
+@dataclass
 class BoolAttr(Attribute):
-    pass
+    value: bool
+
+    def dump(self, indent: int = 0) -> str:
+        return dump_or_value(self.value, indent)
 
 
+@dataclass
 class DictionaryAttr(Attribute):
-    def __init__(self, node: Token = None, **fields):
-        self.value = node
-        super().__init__(None, **fields)
+    value: List["AttributeEntry"]
 
     def dump(self, indent: int = 0) -> str:
         return '{%s}' % dump_or_value(self.value, indent)
 
 
+@dataclass
 class ElementsAttr(Attribute):
     pass
 
 
+@dataclass
 class DenseElementsAttr(ElementsAttr):
-    _fields_ = ['attribute', 'type']
+    attribute: Attribute
+    type: Union[TensorType, VectorType]
 
     def dump(self, indent: int = 0) -> str:
         return 'dense<%s> : %s' % (self.attribute.dump(indent),
                                    self.type.dump(indent))
 
 
+@dataclass
 class OpaqueElementsAttr(ElementsAttr):
-    _fields_ = ['dialect', 'attribute', 'type']
+    dialect: str
+    attribute: Attribute
+    type: Union[TensorType, VectorType]
 
     def dump(self, indent: int = 0) -> str:
         return 'opaque<%s, %s> : %s' % (self.dialect,
@@ -431,8 +367,11 @@ class OpaqueElementsAttr(ElementsAttr):
                                         self.type.dump(indent))
 
 
+@dataclass
 class SparseElementsAttr(ElementsAttr):
-    _fields_ = ['indices', 'values', 'type']
+    indices: List[List[int]]
+    values: List[Any]
+    type: Type
 
     def dump(self, indent: int = 0) -> str:
         return 'sparse<%s, %s> : %s' % (dump_or_value(self.indices, indent),
@@ -440,17 +379,10 @@ class SparseElementsAttr(ElementsAttr):
                                         self.type.dump(indent))
 
 
+@dataclass
 class PrimitiveAttribute(Attribute):
-    _fields_ = ['value', 'type']
-
-    def __init__(self, node: Token = None, **fields):
-        self.value = node[0]
-        if len(node) > 1:
-            self.type = node[1]
-        else:
-            self.type = None
-
-        super().__init__(None, **fields)
+    value: Any
+    type: Type
 
     def dump(self, indent: int = 0) -> str:
         return dump_or_value(self.value, indent) + (
@@ -469,70 +401,91 @@ class StringAttr(PrimitiveAttribute):
     pass
 
 
+@dataclass
 class IntSetAttr(Attribute):
-    pass  # Use default implementation
+    value: "AffineMap"
+
+    def dump(self, indent: int = 0) -> str:
+        return dump_or_value(self.value, indent)
 
 
+@dataclass
 class TypeAttr(Attribute):
-    pass  # Use default implementation
+    value: type
+
+    def dump(self, indent: int = 0) -> str:
+        return dump_or_value(self.value, indent)
 
 
+@dataclass
 class SymbolRefAttr(Attribute):
-    _fields_ = ['path']
-
-    def __init__(self, node: Token = None, **fields):
-        self.path = node
-        super().__init__(None, **fields)
+    path: List[SymbolRefId]
 
     def dump(self, indent: int = 0) -> str:
         return '::'.join(dump_or_value(p, indent) for p in self.path)
 
 
+@dataclass
 class UnitAttr(Attribute):
-    _fields_ = []
-
     def dump(self, indent: int = 0) -> str:
         return 'unit'
+
+
+# Attribute entries
+@dataclass
+class AttributeEntry(Node):
+    name: str
+    value: Optional[Attribute]
+
+    def dump(self, indent: int = 0) -> str:
+        if self.value:
+            return '%s = %s' % (dump_or_value(self.name, indent),
+                                dump_or_value(self.value, indent))
+        return dump_or_value(self.name, indent)
+
+
+@dataclass
+class DialectAttributeEntry(Node):
+    dialect: str
+    name: str
+    value: Optional[Attribute] = None
+
+    def dump(self, indent: int = 0) -> str:
+        if self.value:
+            return '%s.%s = %s' % (dump_or_value(self.dialect, indent),
+                                   dump_or_value(self.name, indent),
+                                   dump_or_value(self.value, indent))
+        return '%s.%s' % (dump_or_value(self.dialect, indent),
+                          dump_or_value(self.name, indent))
+
+
+@dataclass
+class AttributeDict(Node):
+    values: List[AttributeEntry]
+
+    def dump(self, indent: int = 0) -> str:
+        return '{%s}' % ', '.join(
+            dump_or_value(v, indent) for v in self.values)
 
 
 ##############################################################################
 # Operations
 
-
+@dataclass
 class OpResult(Node):
-    _fields_ = ['value', 'count']
-
-    def __init__(self, node: Token = None, **fields):
-        self.value = node[0]
-        if len(node) > 1:
-            self.count = node[1]
-        else:
-            self.count = None
-        super().__init__(None, **fields)
+    value: SsaId
+    count: Optional[int] = None
 
     def dump(self, indent: int = 0) -> str:
         return self.value.dump(indent) + (
             (':' + dump_or_value(self.count, indent)) if self.count else '')
 
 
+@dataclass
 class Operation(Node):
-    _fields_ = ['result_list', 'op', 'location']
-
-    def __init__(self, node: Token = None, **fields):
-        index = 0
-        if isinstance(node[0], list):
-            self.result_list = node[index]
-            index += 1
-        else:
-            self.result_list = []
-        self.op = node[index]
-        index += 1
-        if len(node) > index:
-            self.location = node[index]
-        else:
-            self.location = None
-
-        super().__init__(None, **fields)
+    result_list: List[OpResult]
+    op: "Op"
+    location: Optional["Location"] = None
 
     def dump(self, indent: int = 0) -> str:
         result = indent * '  '
@@ -549,34 +502,21 @@ class Op(Node):
     pass
 
 
+@dataclass
 class GenericOperation(Op):
-    _fields_ = ['name', 'args', 'attributes', 'type']
-
-    def __init__(self, node: Token = None, **fields):
-        index = 0
-        self.name = node[index]
-        index += 1
-        if len(node) > index and isinstance(node[index], list):
-            self.args = node[index]
-            index += 1
-        else:
-            self.args = []
-        if len(node) > index and isinstance(node[index], AttributeDict):
-            self.attributes = node[index]
-            index += 1
-        else:
-            self.attributes = None
-        if len(node) > index:
-            self.type = node[index]
-        else:
-            self.type = None
-
-        super().__init__(None, **fields)
+    name: str
+    args: Optional[List[SsaId]]
+    attributes: Optional[AttributeDict]
+    type: List[Type]
 
     def dump(self, indent: int = 0) -> str:
         result = '%s' % self.name
-        result += '(%s)' % ', '.join(
-            dump_or_value(arg, indent) for arg in self.args)
+        result += '('
+
+        if self.args:
+            result += ', '.join(dump_or_value(arg, indent) for arg in self.args)
+
+        result += ')'
         if self.attributes:
             result += ' ' + dump_or_value(self.attributes, indent)
         if isinstance(self.type, list):
@@ -587,20 +527,12 @@ class GenericOperation(Op):
         return result
 
 
+@dataclass
 class CustomOperation(Op):
-    _fields_ = ['namespace', 'name', 'args', 'type']
-
-    def __init__(self, node: Token = None, **fields):
-        self.namespace = node[0]
-        self.name = node[1]
-        if len(node) == 4:
-            self.args = node[2]
-            self.type = node[3]
-        else:
-            self.args = None
-            self.type = node[2]
-
-        super().__init__(None, **fields)
+    namespace: str
+    name: str
+    args: List[SsaId]
+    type: List[Type]
 
     def dump(self, indent: int = 0) -> str:
         result = '%s.%s' % (self.namespace, self.name)
@@ -617,14 +549,22 @@ class CustomOperation(Op):
 
 
 class Location(Node):
-    _fields_ = ['value']
+    pass
+
+
+@dataclass
+class StrLocation(Node):
+    value: str
 
     def dump(self, indent: int = 0) -> str:
         return 'loc(%s)' % dump_or_value(self.value, indent)
 
 
+@dataclass
 class FileLineColLoc(Location):
-    _fields_ = ['file', 'line', 'col']
+    file: str
+    line: int
+    col: int
 
     def dump(self, indent: int = 0) -> str:
         return 'loc(%s:%d:%d)' % (self.file, self.line, self.col)
@@ -634,55 +574,27 @@ class FileLineColLoc(Location):
 # Modules, functions, and blocks
 
 
+@dataclass
 class Module(Node):
-    _fields_ = ['name', 'attributes', 'body', 'location']
-
-    def __init__(self, node: Union[Token, Node] = None, **fields):
-        if node is None:
-            super().__init__(None, **fields)
-            return
-
-        index = 0
-        if isinstance(node, Node):
-            self.name = None
-            self.attributes = None
-            self.body = [node]
-            self.location = None
-        else:
-            if len(node) > index and isinstance(node[index], SymbolRefId):
-                self.name = node[index]
-                index += 1
-            else:
-                self.name = None
-            if len(node) > index and isinstance(node[index], AttributeDict):
-                self.attributes = node[index]
-                index += 1
-            else:
-                self.attributes = None
-            self.body = node[index].children
-            index += 1
-            if len(node) > index:
-                self.location = node[index]
-            else:
-                self.location = None
-
-        super().__init__(None, **fields)
+    name: Optional[str]
+    attributes: Optional[AttributeDict]
+    region: "Region"
+    location: Optional[Location] = None
 
     def dump(self, indent=0) -> str:
-        result = indent * '  ' + 'module'
+        result = indent * '  ' + 'module '
         if self.name:
-            result += ' %s' % self.name.dump(indent)
+            result += '%s ' % self.name.dump(indent)
         if self.attributes:
             result += ' attributes ' + dump_or_value(self.attributes, indent)
 
-        result += ' {\n'
-        result += '\n'.join(block.dump(indent + 1) for block in self.body)
-        result += '\n' + indent * '  ' + '}'
+        result += self.region.dump(indent)
         if self.location:
             result += ' ' + self.location.dump(indent)
         return result
 
 
+@dataclass
 class GenericModule(Module):
     _fields_ = ['name', 'args', 'body', 'attributes', 'type', 'location']
 
@@ -741,54 +653,21 @@ class GenericModule(Module):
         return result
 
 
+@dataclass
 class Function(Node):
-    _fields_ = [
-        'name', 'args', 'result_types', 'attributes', 'body', 'location'
-    ]
-
-    def __init__(self, node: Token = None, **fields):
-        signature = node[0].children
-        # Parse signature
-        index = 0
-        self.name = signature[index]
-        index += 1
-        if len(signature) > index and signature[index].data == 'argument_list':
-            self.args = signature[index].children
-            index += 1
-        else:
-            self.args = []
-        if (len(signature) > index
-                and signature[index].data == 'function_result_list'):
-            # first child contains all the result types
-            self.result_types = signature[index].children[0]
-            index += 1
-        else:
-            self.result_types = []
-
-        # Parse rest of function
-        index = 1
-        if len(node) > index and isinstance(node[index], AttributeDict):
-            self.attributes = node[index]
-            index += 1
-        else:
-            self.attributes = None
-        if len(node) > index and isinstance(node[index], Region):
-            self.body = node[index]
-            index += 1
-        else:
-            self.body = []
-        if len(node) > index:
-            self.location = node[index]
-        else:
-            self.location = None
-
-        super().__init__(None, **fields)
+    name: SymbolRefId
+    args: Optional[List["NamedArgument"]]
+    result_types: Optional[List[Type]]
+    attributes: Optional[Union[Attribute, AttrAlias]]
+    region: Optional["Region"]
+    location: Optional[Location] = None
 
     def dump(self, indent=0) -> str:
-        result = indent * '  ' + 'func'
+        result = 'func'
         result += ' %s' % self.name.dump(indent)
-        result += '(%s)' % ', '.join(
-            dump_or_value(arg, indent) for arg in self.args)
+        if self.args:
+            result += '(%s)' % ', '.join(
+                dump_or_value(arg, indent) for arg in self.args)
         if self.result_types:
             if not isinstance(self.result_types, list):
                 result += ' -> ' + dump_or_value(self.result_types, indent)
@@ -798,42 +677,27 @@ class Function(Node):
         if self.attributes:
             result += ' attributes ' + dump_or_value(self.attributes, indent)
 
-        result += ' %s' % (self.body.dump(indent) if self.body else '{\n%s}' %
+        result += ' %s' % (self.region.dump(indent) if self.region else '{\n%s}' %
                            (indent * '  '))
         if self.location:
             result += ' ' + self.location.dump(indent)
         return result
 
 
+@dataclass
 class Region(Node):
-    _fields_ = ['body']
-
-    def __init__(self, node: Token = None, **fields):
-        self.body = node
-        super().__init__(None, **fields)
+    body: List[Operation]
 
     def dump(self, indent=0) -> str:
         return ('{\n' + '\n'.join(
-            block.dump(indent + 1)
-            for block in self.body) + '\n%s}' % (indent * '  '))
+            op.dump(indent + 1)
+            for op in self.body) + '\n%s}' % (indent * '  '))
 
 
+@dataclass
 class Block(Node):
-    _fields_ = ['label', 'body']
-
-    def __init__(self, node: Token = None, **fields):
-        index = 0
-        if len(node) > index and isinstance(node[index], BlockLabel):
-            self.label = node[index]
-            index += 1
-        else:
-            self.label = None
-        if len(node) > index:
-            self.body = node[index:]
-        else:
-            self.body = []
-
-        super().__init__(None, **fields)
+    label: Optional["BlockLabel"]
+    body: List[Operation]
 
     def dump(self, indent=0) -> str:
         result = ''
@@ -845,19 +709,11 @@ class Block(Node):
         return result
 
 
+@dataclass
 class BlockLabel(Node):
-    _fields_ = ['name', 'arg_ids', 'arg_types']
-
-    def __init__(self, node: Token = None, **fields):
-        self.name = node[0]
-        if len(node) > 1:
-            arg_id_and_types = [arg.children for arg in node[1][0]]
-            self.arg_ids, self.arg_types = zip(*arg_id_and_types)
-        else:
-            self.arg_ids = []
-            self.arg_types = []
-
-        super().__init__(None, **fields)
+    name: BlockId
+    arg_ids: Optional[List[SsaId]]
+    arg_types: Optional[List[Type]]
 
     def dump(self, indent: int = 0) -> str:
         result = dump_or_value(self.name, indent)
@@ -869,14 +725,11 @@ class BlockLabel(Node):
         return result
 
 
+@dataclass
 class NamedArgument(Node):
-    _fields_ = ['name', 'type', 'attributes']
-
-    def __init__(self, node: Token = None, **fields):
-        self.name = node[0]
-        self.type = node[1]
-        self.attributes = node[2] if len(node) > 2 else None
-        super().__init__(None, **fields)
+    name: SsaId
+    type: Type
+    attributes: Optional[Union[AttributeDict, AttrAlias]] = None
 
     def dump(self, indent: int = 0) -> str:
         result = '%s: %s' % (dump_or_value(self.name, indent),
@@ -886,34 +739,40 @@ class NamedArgument(Node):
         return result
 
 
+@dataclass
+class MLIRFile(Node):
+    definitions: List["Definition"]
+    module: List[Module]
+
+    def dump(self, indent: int = 0) -> str:
+        result = ''
+        if self.definitions:
+            result += '\n'.join(dump_or_value(defn, indent)
+                                for defn in self.definitions)
+
+            result += '\n'
+
+        if self.module:
+            result += dump_or_value(self.module, indent)
+        return result
+
+
 ##############################################################################
 # Affine and semi-affine expressions
 
 
 # Types of affine expressions
 class AffineExpr(Node):
-    _fields_ = ['value']
-
-    def dump(self, indent: int = 0) -> str:
-        return dump_or_value(self.value, indent)
+    pass
 
 
-class SemiAffineExpr(Node):
-    _fields_ = ['value']
-
-    def dump(self, indent: int = 0) -> str:
-        return dump_or_value(self.value, indent)
+class SemiAffineExpr(AffineExpr):
+    pass
 
 
+@dataclass
 class MultiDimAffineExpr(Node):
-    _fields_ = ['dims']
-
-    def __init__(self, node: Token = None, **fields):
-        if len(node) == 1 and isinstance(node[0], list):
-            self.dims = node[0]
-        else:
-            self.dims = node
-        super().__init__(None, **fields)
+    dims: List[AffineExpr]
 
     def dump(self, indent: int = 0) -> str:
         return '%s : (%s)' % (dump_or_value(self.dims_and_symbols, indent),
@@ -923,32 +782,29 @@ class MultiDimAffineExpr(Node):
         return '(%s)' % dump_or_value(self.dims, indent)
 
 
+@dataclass
 class MultiDimSemiAffineExpr(Node):
-    _fields_ = ['dims']
-
-    def __init__(self, node: Token = None, **fields):
-        if len(node) == 1 and isinstance(node[0], list):
-            self.dims = node[0]
-        else:
-            self.dims = node
-        super().__init__(None, **fields)
+    dims: List[SemiAffineExpr]
 
     def dump(self, indent: int = 0) -> str:
         return '(%s)' % dump_or_value(self.dims, indent)
 
 
 # Contents of single/multi-dimensional (semi-)affine expressions
-class AffineUnaryOp(Node):
-    _fields_ = ['operand']
-    _op_ = '<UNDEF %s>'
+@dataclass
+class AffineUnaryOp(AffineExpr):
+    operand: AffineExpr
+    _op_: str = field(init=False, repr=False)
 
     def dump(self, indent: int = 0) -> str:
         return self._op_ % dump_or_value(self.operand, indent)
 
 
-class AffineBinaryOp(Node):
-    _fields_ = ['operand_a', 'operand_b']
-    _op_ = '<UNDEF>'
+@dataclass
+class AffineBinaryOp(AffineExpr):
+    operand_a: Union[AffineExpr, int]
+    operand_b: Union[AffineExpr, int]
+    _op_: str = field(init=False, repr=False)
 
     def dump(self, indent: int = 0) -> str:
         return '%s %s %s' % (dump_or_value(self.operand_a, indent), self._op_,
@@ -965,37 +821,25 @@ class AffineFloorDiv(AffineBinaryOp): _op_ = 'floordiv'
 class AffineCeilDiv(AffineBinaryOp): _op_ = 'ceildiv'
 class AffineMod(AffineBinaryOp): _op_ = 'mod'
 
+
 ##############################################################################
 # (semi-)Affine maps, and integer sets
 
-
+@dataclass
 class DimAndSymbolList(Node):
-    _fields_ = ['dims', 'symbols']
-
-    def __init__(self, node: Token = None, **fields):
-        index = 0
-        if len(node) > index:
-            self.dims = node[index]
-            index += 1
-        else:
-            self.dims = []
-        if len(node) > index:
-            self.symbols = node[index]
-            index += 1
-        else:
-            self.symbols = []
-
-        super().__init__(None, **fields)
+    dims: List[str]
+    symbols: Optional[List[str]]
 
     def dump(self, indent: int = 0) -> str:
-        if len(self.symbols) > 0:
+        if self.symbols:
             return '(%s)[%s]' % (dump_or_value(self.dims, indent),
                                  dump_or_value(self.symbols, indent))
         return '(%s)' % dump_or_value(self.dims, indent)
 
 
+@dataclass
 class AffineConstraint(Node):
-    _fields_ = ['expr']
+    expr: AffineExpr
 
 
 class AffineConstraintGreaterEqual(AffineConstraint):
@@ -1008,51 +852,44 @@ class AffineConstraintEqual(AffineConstraint):
         return '%s == 0' % dump_or_value(self.expr, indent)
 
 
+@dataclass
 class AffineMap(Node):
-    _fields_ = ['dims_and_symbols', 'map']
+    dims_and_symbols: DimAndSymbolList
+    map: MultiDimAffineExpr
 
     def dump(self, indent: int = 0) -> str:
         return 'affine_map<%s -> %s>' % (dump_or_value(self.dims_and_symbols, indent),
                              dump_or_value(self.map, indent))
 
 
+@dataclass
 class SemiAffineMap(Node):
-    _fields_ = ['dims_and_symbols', 'map']
+    dims_and_symbols: DimAndSymbolList
+    map: MultiDimSemiAffineExpr
 
     def dump(self, indent: int = 0) -> str:
         return '%s -> %s' % (dump_or_value(self.dims_and_symbols, indent),
                              dump_or_value(self.map, indent))
 
 
+@dataclass
 class IntSet(Node):
-    _fields_ = ['dims_and_symbols', 'constraints']
-
-    def __init__(self, node: Token = None, **fields):
-        index = 0
-        if len(node) > index:
-            self.dims_and_symbols = node[index]
-            index += 1
-        else:
-            self.dims_and_symbols = []
-        if len(node) > index:
-            self.constraints = node[index]
-            index += 1
-        else:
-            self.constraints = []
-
-        super().__init__(None, **fields)
+    dims_and_symbols: DimAndSymbolList
+    constraints: Optional[List[AffineConstraint]]
 
     def dump(self, indent: int = 0) -> str:
         return '%s : (%s)' % (dump_or_value(self.dims_and_symbols, indent),
-                              dump_or_value(self.constraints, indent))
+                              dump_or_value(self.constraints, indent) if self.constraints else '')
 
 
 ##############################################################################
 # Top-level definitions
 
 
+@dataclass
 class Definition(Node):
-    _fields_ = ['name', 'value']
+    name: Identifier
+    value: Any
 
     def dump(self, indent: int = 0) -> str:
         return (indent * '  ' + dump_or_value(self.name, indent) + ' = ' +

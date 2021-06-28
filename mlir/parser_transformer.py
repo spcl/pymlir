@@ -1,4 +1,6 @@
 from lark import v_args, Transformer
+from lark.exceptions import GrammarError
+from lark.visitors import Discard
 from mlir import astnodes
 
 
@@ -16,7 +18,8 @@ class TreeToMlir(Transformer):
     true = lambda self, _: True
     false = lambda self, _: False
     id_chars = lambda self, val: str(val[0])
-    dimension = astnodes.Dimension
+    inttype_width = lambda self, val: int(val[0])
+    dimension = astnodes.Dimension.from_lark
 
     # Literals
     @v_args(inline=True)
@@ -45,124 +48,130 @@ class TreeToMlir(Transformer):
     ###############################################################
     # MLIR Identifiers
 
-    ssa_id = astnodes.SsaId
-    symbol_ref_id = astnodes.SymbolRefId
-    block_id = astnodes.BlockId
-    type_alias = astnodes.TypeAlias
-    attribute_alias = astnodes.AttrAlias
-    map_or_set_id = astnodes.MapOrSetId
+    ssa_id = astnodes.SsaId.from_lark
+    symbol_ref_id = astnodes.SymbolRefId.from_lark
+    block_id = astnodes.BlockId.from_lark
+    type_alias = astnodes.TypeAlias.from_lark
+    attribute_alias = astnodes.AttrAlias.from_lark
+    map_or_set_id = astnodes.MapOrSetId.from_lark
 
     ###############################################################
     # MLIR Types
 
-    none_type = astnodes.NoneType
-    f16 = lambda self, _: "f16"
-    bf16 = lambda self, _: "bf16"
-    f32 = lambda self, _: "f32"
-    f64 = lambda self, _: "f64"
-    float_type = astnodes.FloatType
-    index_type = astnodes.IndexType
-    integer_type = astnodes.IntegerType
-    complex_type = astnodes.ComplexType
-    tuple_type = astnodes.TupleType
-    vector_type = astnodes.VectorType
-    ranked_tensor_type = astnodes.RankedTensorType
-    unranked_tensor_type = astnodes.UnrankedTensorType
-    ranked_memref_type = astnodes.RankedMemRefType
-    unranked_memref_type = astnodes.UnrankedMemRefType
-    opaque_dialect_item = astnodes.OpaqueDialectType
-    pretty_dialect_item = astnodes.PrettyDialectType
-    function_type = astnodes.FunctionType
-    llvm_function_type = astnodes.LlvmFunctionType
-    strided_layout = astnodes.StridedLayout
+    none_type = astnodes.NoneType.from_lark
+    F16 = lambda self, tok: astnodes.FloatTypeEnum("f16")
+    BF16 = lambda self, tok: astnodes.FloatTypeEnum("bf16")
+    F32 = lambda self, tok: astnodes.FloatTypeEnum("f32")
+    F64 = lambda self, tok: astnodes.FloatTypeEnum("f64")
+    float_type = astnodes.FloatType.from_lark
+    index_type = astnodes.IndexType.from_lark
+    signed_integer_type = astnodes.SignedIntegerType.from_lark
+    unsigned_integer_type = astnodes.UnsignedIntegerType.from_lark
+    signless_integer_type = astnodes.SignlessIntegerType.from_lark
+    complex_type = astnodes.ComplexType.from_lark
+    tuple_type = astnodes.TupleType.from_lark
+    vector_type = astnodes.VectorType.from_lark
+    ranked_tensor_type = astnodes.RankedTensorType.from_lark
+    unranked_tensor_type = lambda self, value: astnodes.UnrankedTensorType(value[1])  # gets rid of literal "*x"
+    ranked_memref_type = astnodes.RankedMemRefType.from_lark
+    unranked_memref_type = astnodes.UnrankedMemRefType.from_lark
+    opaque_dialect_item = astnodes.OpaqueDialectType.from_lark
+    pretty_dialect_item = astnodes.PrettyDialectType.from_lark
+    llvm_function_type = astnodes.LlvmFunctionType.from_lark
+    function_type = astnodes.FunctionType.from_lark
+    strided_layout = astnodes.StridedLayout.from_lark
 
     ###############################################################
     # MLIR Attributes
 
     array_attribute = astnodes.ArrayAttr
-    bool_attribute = astnodes.BoolAttr
+    bool_attribute = astnodes.BoolAttr.from_lark
     dictionary_attribute = astnodes.DictionaryAttr
-    dense_elements_attribute = astnodes.DenseElementsAttr
-    opaque_elements_attribute = astnodes.OpaqueElementsAttr
-    sparse_elements_attribute = astnodes.SparseElementsAttr
-    float_attribute = astnodes.FloatAttr
-    integer_attribute = astnodes.IntegerAttr
-    integer_set_attribute = astnodes.IntSetAttr
-    string_attribute = astnodes.StringAttr
+    dense_elements_attribute = astnodes.DenseElementsAttr.from_lark
+    opaque_elements_attribute = astnodes.OpaqueElementsAttr.from_lark
+    sparse_elements_attribute = astnodes.SparseElementsAttr.from_lark
+    float_attribute = astnodes.FloatAttr.from_lark
+    integer_attribute = astnodes.IntegerAttr.from_lark
+    integer_set_attribute = astnodes.IntSetAttr.from_lark
+    string_attribute = astnodes.StringAttr.from_lark
     symbol_ref_attribute = astnodes.SymbolRefAttr
-    type_attribute = astnodes.TypeAttr
-    unit_attribute = astnodes.UnitAttr
+    type_attribute = astnodes.TypeAttr.from_lark
+    unit_attribute = astnodes.UnitAttr.from_lark
 
-    dependent_attribute_entry = astnodes.AttributeEntry
-    dialect_attribute_entry = astnodes.DialectAttributeEntry
+    dependent_attribute_entry = astnodes.AttributeEntry.from_lark
+    dialect_attribute_entry = astnodes.DialectAttributeEntry.from_lark
     attribute_dict = astnodes.AttributeDict
 
     ###############################################################
     # Operations
 
-    op_result = astnodes.OpResult
-    location = astnodes.FileLineColLoc
-
-    operation = astnodes.Operation
-    generic_operation = astnodes.GenericOperation
-    custom_operation = astnodes.CustomOperation
+    op_result = astnodes.OpResult.from_lark
+    location = astnodes.FileLineColLoc.from_lark
+    operation = astnodes.Operation.from_lark
+    generic_operation = astnodes.GenericOperation.from_lark
+    custom_operation = astnodes.CustomOperation.from_lark
 
     ###############################################################
     # Blocks, regions, modules, functions
 
-    block_label = astnodes.BlockLabel
-    block = astnodes.Block
+    def block_label(self, value):
+        if value[1] is None:
+            arg_ids, argtypes = None, None
+        else:
+            arg_ids, argtypes = list(zip(*value[1]))
+            return astnodes.BlockLabel(value[0], arg_ids, argtypes)
+    block = astnodes.Block.from_lark
     region = astnodes.Region
-    module = astnodes.Module
-    generic_module = astnodes.GenericModule
-    function = astnodes.Function
-    named_argument = astnodes.NamedArgument
+    module = astnodes.Module.from_lark
+    function = astnodes.Function.from_lark
+    generic_module = astnodes.GenericModule.from_lark
+    named_argument = astnodes.NamedArgument.from_lark
 
     ###############################################################
     # (semi-)Affine expressions, maps, and integer sets
 
-    dim_and_symbol_id_lists = astnodes.DimAndSymbolList
-    dim_and_symbol_use_list = astnodes.DimAndSymbolList
+    dim_and_symbol_id_lists = astnodes.DimAndSymbolList.from_lark
+    dim_and_symbol_use_list = astnodes.DimAndSymbolList.from_lark
 
-    affine_expr = astnodes.AffineExpr
-    semi_affine_expr = astnodes.SemiAffineExpr
-    multi_dim_affine_expr = astnodes.MultiDimAffineExpr
-    multi_dim_semi_affine_expr = astnodes.MultiDimSemiAffineExpr
+    affine_expr = astnodes.AffineExpr.from_lark
+    semi_affine_expr = astnodes.SemiAffineExpr.from_lark
+    multi_dim_affine_expr = astnodes.MultiDimAffineExpr.from_lark
+    multi_dim_semi_affine_expr = astnodes.MultiDimSemiAffineExpr.from_lark
 
-    affine_constraint_ge = astnodes.AffineConstraintGreaterEqual
-    affine_constraint_eq = astnodes.AffineConstraintEqual
+    affine_constraint_ge = astnodes.AffineConstraintGreaterEqual.from_lark
+    affine_constraint_eq = astnodes.AffineConstraintEqual.from_lark
 
-    affine_map_inline = astnodes.AffineMap
-    semi_affine_map_inline = astnodes.SemiAffineMap
-    integer_set_inline = astnodes.IntSet
+    affine_map_inline = astnodes.AffineMap.from_lark
+    semi_affine_map_inline = astnodes.SemiAffineMap.from_lark
+    integer_set_inline = astnodes.IntSet.from_lark
 
-    affine_neg = astnodes.AffineNeg
-    semi_affine_neg = astnodes.AffineNeg
-    affine_parens = astnodes.AffineParens
-    semi_affine_parens = astnodes.AffineParens
-    affine_symbol_explicit = astnodes.AffineExplicitSymbol
-    semi_affine_symbol_explicit = astnodes.AffineExplicitSymbol
-    affine_add = astnodes.AffineAdd
-    semi_affine_add = astnodes.AffineAdd
-    affine_sub = astnodes.AffineSub
-    semi_affine_sub = astnodes.AffineSub
-    affine_mul = astnodes.AffineMul
-    semi_affine_mul = astnodes.AffineMul
-    affine_floordiv = astnodes.AffineFloorDiv
-    semi_affine_floordiv = astnodes.AffineFloorDiv
-    affine_ceildiv = astnodes.AffineCeilDiv
-    semi_affine_ceildiv = astnodes.AffineCeilDiv
-    affine_mod = astnodes.AffineMod
-    semi_affine_mod = astnodes.AffineMod
+    affine_neg = astnodes.AffineNeg.from_lark
+    semi_affine_neg = astnodes.AffineNeg.from_lark
+    affine_parens = astnodes.AffineParens.from_lark
+    semi_affine_parens = astnodes.AffineParens.from_lark
+    affine_symbol_explicit = astnodes.AffineExplicitSymbol.from_lark
+    semi_affine_symbol_explicit = astnodes.AffineExplicitSymbol.from_lark
+    affine_add = astnodes.AffineAdd.from_lark
+    semi_affine_add = astnodes.AffineAdd.from_lark
+    affine_sub = astnodes.AffineSub.from_lark
+    semi_affine_sub = astnodes.AffineSub.from_lark
+    affine_mul = astnodes.AffineMul.from_lark
+    semi_affine_mul = astnodes.AffineMul.from_lark
+    affine_floordiv = astnodes.AffineFloorDiv.from_lark
+    semi_affine_floordiv = astnodes.AffineFloorDiv.from_lark
+    affine_ceildiv = astnodes.AffineCeilDiv.from_lark
+    semi_affine_ceildiv = astnodes.AffineCeilDiv.from_lark
+    affine_mod = astnodes.AffineMod.from_lark
+    semi_affine_mod = astnodes.AffineMod.from_lark
 
     ###############################################################
     # Top-level definitions
 
-    type_alias_def = astnodes.TypeAliasDef
-    affine_map_def = astnodes.AffineMapDef
-    semi_affine_map_def = astnodes.SemiAffineMapDef
-    integer_set_def = astnodes.IntSetDef
-    attribute_alias_def = astnodes.AttrAliasDef
+    type_alias_def = astnodes.TypeAliasDef.from_lark
+    affine_map_def = astnodes.AffineMapDef.from_lark
+    semi_affine_map_def = astnodes.SemiAffineMapDef.from_lark
+    integer_set_def = astnodes.IntSetDef.from_lark
+    attribute_alias_def = astnodes.AttrAliasDef.from_lark
 
     ###############################################################
     # List types
@@ -171,9 +180,8 @@ class TreeToMlir(Transformer):
     ssa_use_list = list
     op_result_list = list
     successor_list = list
-    function_body = list
-    ssa_id_and_type_list = list
-    block_arg_list = list
+    ssa_id_and_type = tuple
+    ssa_id_and_type_list = tuple
     ssa_use_and_type_list = list
     stride_list = list
     dimension_list_ranked = list
@@ -183,10 +191,19 @@ class TreeToMlir(Transformer):
     affine_constraint_conjunction = list
     function_result_list_no_parens = list
     multi_dim_affine_expr_no_parens = list
+    multi_dim_semi_affine_expr_no_parens = list
     dim_id_list = list
     symbol_id_list = list
     dim_use_list = list
     symbol_use_list = list
+    operation_list = list
+    argument_list = list
+    definition_list = list
+    function_list = list
+    module_list = list
+    block_arg_list = list
+    definition_and_function_list = tuple
+    definition_and_module_list = tuple
 
     ###############################################################
     # Composite types that should be reduced to sub-types
@@ -195,6 +212,7 @@ class TreeToMlir(Transformer):
     constant_literal = lambda self, value: value[0]
     dimension_list = lambda self, value: value[0]
     ssa_use = lambda self, value: value[0]
+    integer_type = lambda self, value: value[0]
     vector_element_type = lambda self, value: value[0]
     tensor_memref_element_type = lambda self, value: value[0]
     tensor_type = lambda self, value: value[0]
@@ -223,4 +241,30 @@ class TreeToMlir(Transformer):
     affine_symbol = lambda self, value: value[0]
     semi_affine_symbol = lambda self, value: value[0]
 
+    ###############################################################
+    # MLIR file
+
+    def only_functions_and_definitions_file(self, defns_and_fns):
+        assert isinstance(defns_and_fns, list)
+        assert all(isinstance(el, tuple) for el in defns_and_fns)
+        defns = sum([defns for defns, fns in defns_and_fns], [])
+        fns = sum([fns for defns, fns in defns_and_fns], [])
+        if len(fns) == 0:
+            return astnodes.MLIRFile(defns, [])
+        else:
+            return astnodes.MLIRFile(defns, [astnodes.Module(None, None, astnodes.Region(fns))])
+
+
+    def mlir_file_as_definition_and_module_list(self, defns_and_mods):
+        assert isinstance(defns_and_mods, list)
+        assert all(isinstance(el, tuple) for el in defns_and_mods)
+        defns = sum([defns for defns, mods in defns_and_mods], [])
+        mods = sum([mods for defns, mods in defns_and_mods], [])
+        return astnodes.MLIRFile(defns, mods)
+
     # Dialect ops and types are appended to this list via "setattr"
+
+    def optional(self, value):
+        assert isinstance(value, list)
+        assert len(value) in [0, 1]
+        return value[0] if value else None
