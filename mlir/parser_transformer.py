@@ -72,7 +72,8 @@ class TreeToMlir(Transformer):
     tuple_type = astnodes.TupleType.from_lark
     vector_type = astnodes.VectorType.from_lark
     ranked_tensor_type = astnodes.RankedTensorType.from_lark
-    unranked_tensor_type = lambda self, value: astnodes.UnrankedTensorType(value[1])  # gets rid of literal "*x"
+    unranked_tensor_type = lambda self, value: astnodes.UnrankedTensorType(
+        value[1])  # gets rid of literal "*x"
     ranked_memref_type = astnodes.RankedMemRefType.from_lark
     unranked_memref_type = astnodes.UnrankedMemRefType.from_lark
     opaque_dialect_item = astnodes.OpaqueDialectType.from_lark
@@ -120,6 +121,7 @@ class TreeToMlir(Transformer):
         else:
             arg_ids, argtypes = list(zip(*value[1]))
             return astnodes.BlockLabel(value[0], arg_ids, argtypes)
+
     block = astnodes.Block.from_lark
     region = astnodes.Region
     module = astnodes.Module.from_lark
@@ -230,7 +232,8 @@ class TreeToMlir(Transformer):
     attribute_entry = lambda self, value: value[0]
     trailing_type = lambda self, value: value[0]
     trailing_location = lambda self, value: value[0]
-    function_result_list_parens = lambda self, value: (value[0] if value else [])
+    function_result_list_parens = lambda self, value: (value[0]
+                                                       if value else [])
     symbol_or_const = lambda self, value: value[0]
     affine_map = lambda self, value: value[0]
     semi_affine_map = lambda self, value: value[0]

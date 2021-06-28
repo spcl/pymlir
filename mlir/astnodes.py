@@ -296,8 +296,10 @@ class FunctionType(Type):
         return result
 
 
+@dataclass
 class LlvmFunctionType(Type):
-    _fields_ = ['result_type', 'argument_types']
+    result_type: Type
+    argument_types: List[Type]
 
     def dump(self, indent: int = 0) -> str:
         result = dump_or_value(self.result_type) + ''
@@ -573,16 +575,18 @@ class FileLineColLoc(Location):
 ##############################################################################
 # Modules, functions, and blocks
 
+class ModuleType(Node):
+    pass
 
 @dataclass
-class Module(Node):
+class Module(ModuleType):
     name: Optional[str]
     attributes: Optional[AttributeDict]
     region: "Region"
     location: Optional[Location] = None
 
     def dump(self, indent=0) -> str:
-        result = indent * '  ' + 'module '
+        result = 'module '
         if self.name:
             result += '%s ' % self.name.dump(indent)
         if self.attributes:
@@ -595,56 +599,24 @@ class Module(Node):
 
 
 @dataclass
-class GenericModule(Module):
-    _fields_ = ['name', 'args', 'body', 'attributes', 'type', 'location']
-
-    def __init__(self, node: Union[Token, Node] = None, **fields):
-        index = 0
-        if isinstance(node, Node):
-            self.name = None
-            self.attributes = None
-            self.body = [node]
-            self.location = None
-        else:
-            # Name
-            self.name = node[index]
-            index += 1
-            # Parameters (optional)
-            if len(node) > index and isinstance(node[index], list):
-                self.args = node[index]
-                index += 1
-            else:
-                self.args = []
-            # Body
-            self.body = node[index].children
-            index += 1
-            # Attributes (optional)
-            if len(node) > index and isinstance(node[index], AttributeDict):
-                self.attributes = node[index]
-                index += 1
-            else:
-                self.attributes = None
-            # Trailing type
-            self.type = node[index]
-            index += 1
-            # Location (optional)
-            if len(node) > index:
-                self.location = node[index]
-            else:
-                self.location = None
-
-        super().__init__(None, **fields)
+class GenericModule(ModuleType):
+    name: str
+    args: List["NamedArgument"]
+    region: "Region"
+    attributes: Optional[AttributeDict]
+    type: List[Type]
+    location: Optional[Location] = None
 
     def dump(self, indent=0) -> str:
-        result = indent * '  ' + dump_or_value(self.name, indent)
+        result = dump_or_value(self.name, indent)
         result += '('
         if self.args:
             result += ' %s' % ', '.join(
                 dump_or_value(arg, indent) for arg in self.args)
         result += ')'
-        result += ' ( {\n'
-        result += '\n'.join(block.dump(indent + 1) for block in self.body)
-        result += '\n' + indent * '  ' + '})'
+        result += ' ( '
+        result += self.region.dump(indent)
+        result += ')'
         if self.attributes:
             result += ' ' + dump_or_value(self.attributes, indent)
         result += ' : ' + self.type.dump(indent)
