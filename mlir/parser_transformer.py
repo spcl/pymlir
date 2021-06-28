@@ -240,8 +240,8 @@ class TreeToMlir(Transformer):
     integer_set = lambda self, value: value[0]
     affine_literal = lambda self, value: value[0]
     semi_affine_literal = lambda self, value: value[0]
-    affine_ssa = lambda self, value: value[0]
-    affine_symbol = lambda self, value: value[0]
+    affine_ssa = lambda self, value: astnodes.AffineSsa(value[0].value, value[0].op_no)
+    affine_dim_or_symbol = astnodes.AffineDimOrSymbol.from_lark
     semi_affine_symbol = lambda self, value: value[0]
 
     ###############################################################

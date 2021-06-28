@@ -256,7 +256,7 @@ affine_expr : "(" affine_expr ")"                      -> affine_parens
             | "symbol" "(" ssa_id ")"                  -> affine_symbol_explicit
             | posneg_integer_literal                   -> affine_literal
             | ssa_id                                   -> affine_ssa
-            | bare_id                                  -> affine_symbol
+            | bare_id                                  -> affine_dim_or_symbol
 
 semi_affine_expr : "(" semi_affine_expr ")"                        -> semi_affine_parens
                  | semi_affine_expr "+" semi_affine_expr           -> semi_affine_add
