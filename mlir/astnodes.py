@@ -657,7 +657,7 @@ class NamedArgument(Node):
 @dataclass
 class MLIRFile(Node):
     definitions: List["Definition"]
-    module: Module
+    module: List[Module]
 
     def dump(self, indent: int = 0) -> str:
         result = ''
@@ -667,7 +667,8 @@ class MLIRFile(Node):
 
             result += '\n'
 
-        result += dump_or_value(self.module, indent)
+        if self.module:
+            result += dump_or_value(self.module, indent)
         return result
 
 

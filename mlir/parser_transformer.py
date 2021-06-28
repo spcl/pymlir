@@ -244,7 +244,10 @@ class TreeToMlir(Transformer):
         assert all(isinstance(el, tuple) for el in defns_and_fns)
         defns = sum([defns for defns, fns in defns_and_fns], [])
         fns = sum([fns for defns, fns in defns_and_fns], [])
-        return astnodes.MLIRFile(defns, astnodes.Module(None, None, astnodes.Region(fns)))
+        if len(fns) == 0:
+            return astnodes.MLIRFile(defns, [])
+        else:
+            return astnodes.MLIRFile(defns, [astnodes.Module(None, None, astnodes.Region(fns))])
 
 
     def mlir_file_as_definition_and_module_list(self, defns_and_mods):
@@ -252,11 +255,7 @@ class TreeToMlir(Transformer):
         assert all(isinstance(el, tuple) for el in defns_and_mods)
         defns = sum([defns for defns, mods in defns_and_mods], [])
         mods = sum([mods for defns, mods in defns_and_mods], [])
-        if len(mods) == 1:
-            module = mods[0]
-        else:
-            module = astnodes.Module(None, None, astnodes.Region(mods))
-        return astnodes.MLIRFile(defns, module)
+        return astnodes.MLIRFile(defns, mods)
 
     # Dialect ops and types are appended to this list via "setattr"
 
