@@ -142,6 +142,21 @@ class IndexType(Type):
 class IntegerType(Type):
     width: int
 
+
+@dataclass
+class SignedIntegerType(IntegerType):
+    def dump(self, indent: int = 0) -> str:
+        return 'si' + str(self.width)
+
+
+@dataclass
+class UnsignedIntegerType(IntegerType):
+    def dump(self, indent: int = 0) -> str:
+        return 'ui' + str(self.width)
+
+
+@dataclass
+class SignlessIntegerType(IntegerType):
     def dump(self, indent: int = 0) -> str:
         return 'i' + str(self.width)
 

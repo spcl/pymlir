@@ -201,6 +201,17 @@ def test_definitions(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
+def test_integer_sign(parser: Optional[Parser] = None):
+    code = '''
+func @integer_test(%a: si16, %b: ui32, %c: i7) {
+  return
+}
+    '''
+    parser = parser or Parser()
+    module = parser.parse(code)
+    print(module.pretty())
+
+
 if __name__ == '__main__':
     p = Parser()
     print("MLIR parser created")
@@ -213,3 +224,4 @@ if __name__ == '__main__':
     test_toplevel_functions(p)
     test_affine(p)
     test_definitions(p)
+    test_integer_sign(p)
