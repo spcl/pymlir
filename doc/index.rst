@@ -7,8 +7,7 @@ pyMLIR is a Python Interface for the Multi-Level Intermediate Representation (ML
    :maxdepth: 2
 
    custom_dialect
-   source/modules
-	  
+   ref_builder
 
 
 Reference
