@@ -714,7 +714,7 @@ class NamedArgument(Node):
 @dataclass
 class MLIRFile(Node):
     definitions: List["Definition"]
-    module: List[Module]
+    modules: List[Module]
 
     def dump(self, indent: int = 0) -> str:
         result = ''
@@ -724,9 +724,20 @@ class MLIRFile(Node):
 
             result += '\n'
 
-        if self.module:
-            result += dump_or_value(self.module, indent)
+        if self.modules:
+            result += dump_or_value(self.modules, indent)
         return result
+
+    @property
+    def default_module(self) -> Module:
+        """
+        If *self* contains exactly one module returns it, otherwise raises a
+        :class:`ValueError`.
+        """
+        if len(self.modules) != 1:
+            raise ValueError("Can access default_module iff the "
+                             "MLIR file has exactly one module.")
+        return self.modules[0]
 
 
 ##############################################################################
