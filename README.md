@@ -124,6 +124,41 @@ m = mlir.parse_path('/path/to/matrixfile.mlir',
 print(m.dump_ast())
 ```
 
+### MLIR from scratch with the builder API
+
+pyMLIR has a Builder API that can create MLIR ASTs on the fly within Python code.
+
+```python
+import mlir.builder
+
+builder = mlir.builder.IRBuilder()
+mlirfile = builder.make_mlir_file()
+module = mlirfile.default_module
+
+with builder.goto_block(builder.make_block(module.region)):
+    hello = builder.function("hello_world")
+    block = builder.make_block(hello.region)
+    builder.position_at_entry(block)
+
+    x, y = builder.add_function_args(hello, [builder.F64, builder.F64], ['a', 'b'])
+
+    adder = builder.addf(x, y, builder.F64)
+    builder.ret([adder], [builder.F64])
+
+print(mlirfile.dump())
+```
+prints:
+```mlir
+module {
+  func @hello_world(%a: f64, %b: f64) {
+    %_pymlir_ssa = addf %a , %b : f64
+    return %_pymlir_ssa : f64
+  }
+}
+```
+
+See also [saxpy](tests/test_builder.py) for a full example that registers and uses a dialect in the builder.
+
 ### Built-in dialect implementations and more examples
 
 All dialect implementations can be found in the [dialects](mlir/dialects) subfolder. Additional uses

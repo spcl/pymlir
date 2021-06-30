@@ -36,8 +36,16 @@ class ReturnOperation(DialectOp):
     types: Optional[List[mast.Type]] = None
     _syntax_ = ['return',
                 'return {values.ssa_use_list} : {types.type_list_no_parens}']
+    def dump(self, indent: int = 0) -> str:
+        output = 'return'
+        if self.values:
+            output += ' ' + ', '.join([v.dump(indent) for v in self.values])
+        if self.types:
+            output += ' : ' + ', '.join([t.dump(indent) for t in self.types])
 
+        return output
 
+    
 # Core Operations
 @dataclass
 class CallOperation(DialectOp):
