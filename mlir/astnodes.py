@@ -508,6 +508,7 @@ class Op(Node):
 class GenericOperation(Op):
     name: str
     args: Optional[List[SsaId]]
+    successors: Optional[List[BlockId]]
     attributes: Optional[AttributeDict]
     type: List[Type]
 
@@ -519,6 +520,8 @@ class GenericOperation(Op):
             result += ', '.join(dump_or_value(arg, indent) for arg in self.args)
 
         result += ')'
+        if self.successors:
+            result += '[' + dump_or_value(self.successors, indent) + ']'
         if self.attributes:
             result += ' ' + dump_or_value(self.attributes, indent)
         if isinstance(self.type, list):

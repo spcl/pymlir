@@ -167,7 +167,7 @@ location : string_literal ":" decimal_literal ":" decimal_literal
 trailing_location : ("loc" "(" location ")")
 
 // Undefined operations in all dialects
-generic_operation : string_literal "(" optional_ssa_use_list ")" optional_attr_dict trailing_type
+generic_operation : string_literal "(" optional_ssa_use_list ")" optional_successor_list optional_attr_dict trailing_type
 custom_operation  : bare_id "." bare_id optional_ssa_use_list trailing_type
 
 // Final operation definition
@@ -184,6 +184,7 @@ ssa_id_and_type_list : ssa_id_and_type ("," ssa_id_and_type)*
 operation_list: operation+
 
 block_label     : block_id optional_block_arg_list ":"
+successor_list   : "[" block_id? ("," block_id)* "]"
 
 block           : optional_block_label operation_list
 region : "{" block* "}"
@@ -211,6 +212,7 @@ region : "{" block* "}"
 ?optional_memory_space                  : ("," memory_space)?                  -> optional
 ?optional_block_label                   : block_label?                         -> optional
 ?optional_symbol_use_list               : symbol_use_list?                     -> optional
+?optional_successor_list                : successor_list?                      -> optional
 // ----------------------------------------------------------------------
 // Modules and functions
 
