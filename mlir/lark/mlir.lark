@@ -251,9 +251,9 @@ affine_expr : "(" affine_expr ")"                      -> affine_parens
             | affine_expr "-" affine_expr              -> affine_sub
             | posneg_integer_literal "*" affine_expr   -> affine_mul
             | affine_expr "*" posneg_integer_literal   -> affine_mul
-            | affine_expr "&ceildiv&" integer_literal  -> affine_ceildiv
-            | affine_expr "&floordiv&" integer_literal -> affine_floordiv
-            | affine_expr "&mod&" integer_literal      -> affine_mod
+            | affine_expr "ceildiv" integer_literal    -> affine_ceildiv
+            | affine_expr "floordiv" integer_literal   -> affine_floordiv
+            | affine_expr "mod" integer_literal        -> affine_mod
             | "-" affine_expr                          -> affine_neg
             | "symbol" "(" ssa_id ")"                  -> affine_symbol_explicit
             | posneg_integer_literal                   -> affine_literal
@@ -265,9 +265,9 @@ semi_affine_expr : "(" semi_affine_expr ")"                        -> semi_affin
                  | semi_affine_expr "-" semi_affine_expr           -> semi_affine_sub
                  | symbol_or_const "*" semi_affine_expr            -> semi_affine_mul
                  | semi_affine_expr "*" symbol_or_const            -> semi_affine_mul
-                 | semi_affine_expr "&ceildiv&" semi_affine_oprnd  -> semi_affine_ceildiv
-                 | semi_affine_expr "&floordiv&" semi_affine_oprnd -> semi_affine_floordiv
-                 | semi_affine_expr "&mod&" semi_affine_oprnd      -> semi_affine_mod
+                 | semi_affine_expr "ceildiv" semi_affine_oprnd    -> semi_affine_ceildiv
+                 | semi_affine_expr "floordiv" semi_affine_oprnd   -> semi_affine_floordiv
+                 | semi_affine_expr "mod" semi_affine_oprnd        -> semi_affine_mod
                  | "symbol" "(" symbol_or_const ")"                -> semi_affine_symbol_explicit
                  | symbol_or_const                                 -> semi_affine_symbol
 
