@@ -206,6 +206,7 @@ class TreeToMlir(Transformer):
     block_arg_list = list
     definition_and_function_list = tuple
     definition_and_module_list = tuple
+    region_list = list
 
     ###############################################################
     # Composite types that should be reduced to sub-types
