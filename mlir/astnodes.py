@@ -509,6 +509,7 @@ class GenericOperation(Op):
     name: str
     args: Optional[List[SsaId]]
     successors: Optional[List[BlockId]]
+    regions: Optional[List["Region"]]
     attributes: Optional[AttributeDict]
     type: List[Type]
 
@@ -522,6 +523,8 @@ class GenericOperation(Op):
         result += ')'
         if self.successors:
             result += '[' + dump_or_value(self.successors, indent) + ']'
+        if self.regions:
+            result += ' ( ' + ', '.join(r.dump(indent) for r in self.regions) + ')'
         if self.attributes:
             result += ' ' + dump_or_value(self.attributes, indent)
         if isinstance(self.type, list):
