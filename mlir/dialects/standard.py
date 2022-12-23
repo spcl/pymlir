@@ -30,43 +30,7 @@ class CondBrOperation(DialectOp):
     _syntax_ = ['cond_br {cond.ssa_use} , {block_true.block_id} , {block_false.block_id}']
 
 
-@dataclass
-class ReturnOperation(DialectOp):
-    values: Optional[List[SsaUse]] = None
-    types: Optional[List[mast.Type]] = None
-    _syntax_ = ['return',
-                'return {values.ssa_use_list} : {types.type_list_no_parens}']
-    def dump(self, indent: int = 0) -> str:
-        output = 'return'
-        if self.values:
-            output += ' ' + ', '.join([v.dump(indent) for v in self.values])
-        if self.types:
-            output += ' : ' + ', '.join([t.dump(indent) for t in self.types])
-
-        return output
-
-    
 # Core Operations
-@dataclass
-class CallOperation(DialectOp):
-    func: mast.SymbolRefId
-    type: mast.FunctionType
-    args: Optional[List[SsaUse]] = None
-    argtypes: Optional[List[mast.Type]] = None
-    _syntax_ = ['call {func.symbol_ref_id} () : {type.function_type}',
-                'call {func.symbol_ref_id} ( {args.ssa_use_list} ) : {argtypes.function_type}']
-
-
-@dataclass
-class CallIndirectOperation(DialectOp):
-    func: mast.SymbolRefId
-    type: mast.FunctionType
-    args: Optional[List[SsaUse]] = None
-    argtypes: Optional[List[mast.Type]] = None
-    _syntax_ = ['call_indirect {func.symbol_ref_id} () : {type.function_type}',
-                'call_indirect {func.symbol_ref_id} ( {args.ssa_use_list} ) : {type.function_type}']
-
-
 @dataclass
 class DimOperation(DialectOp):
     operand: mast.SsaId

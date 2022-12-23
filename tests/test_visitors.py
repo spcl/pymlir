@@ -1,13 +1,19 @@
 """ Tests pyMLIR's node visitor and transformer. """
 
 from mlir import NodeVisitor, NodeTransformer, Parser, astnodes
+from mlir.dialects.func import func 
+import pytest
 from typing import Optional
+
+@pytest.fixture
+def parser(parser: Optional[Parser] = None) -> Parser:
+    return parser if parser is not None else Parser(dialects=[func])
 
 
 # Sample code to use for visitors
 _code = '''
 module {
-  func @test0(%arg0: index, %arg1: index) {
+  func.func @test0(%arg0: index, %arg1: index) {
     %0 = alloc() : memref<100x100xf32>
     %1 = alloc() : memref<100x100xf32, 2>
     %2 = alloc() : memref<1xi32>
@@ -21,7 +27,7 @@ module {
     }
     return
   }
-  func @test1(%arg0: index, %arg1: index) {
+  func.func @test1(%arg0: index, %arg1: index) {
     affine.for %arg2 = 0 to 10 {
       affine.for %arg3 = 0 to 10 {
         %c0 = constant 0 : index
@@ -34,14 +40,14 @@ module {
     }
     return
   }
-  func @test2(%arg0: index, %arg1: index) {
+  func.func @test2(%arg0: index, %arg1: index) {
     %0 = alloc() : memref<100x100xf32>
   }
 }
 '''
 
 
-def test_visitor(parser: Optional[Parser] = None):
+def test_visitor(parser):
     class MyVisitor(NodeVisitor):
         def __init__(self):
             self.functions = 0
@@ -58,7 +64,7 @@ def test_visitor(parser: Optional[Parser] = None):
     assert visitor.functions == 3
 
 
-def test_transformer(parser: Optional[Parser] = None):
+def test_transformer(parser):
     # Simple node transformer that removes all operations with a result
     class RemoveAllResultOps(NodeTransformer):
         def visit_Operation(self, node: astnodes.Operation):
@@ -90,7 +96,7 @@ def test_transformer(parser: Optional[Parser] = None):
 
 
 if __name__ == '__main__':
-    p = Parser()
+    p = Parser(dialects=[func])
     print("MLIR parser created")
     test_visitor(p)
     test_transformer(p)
