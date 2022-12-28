@@ -25,13 +25,13 @@ def test_function_no_args():
     Test round-tripping a function with no arguments.
     """
     code = '''module {
-  func @toy_func() -> index {
-    %c0 = constant 0 : index
+  func.func @toy_func() -> index {
+    %0 = constant 0 : index
     return %0 : index
   }
 }'''
 
-    module = parse_string(code)
+    module = parse_string(code, dialects=[func])
     dump = module.dump()
     assert dump == code
 
