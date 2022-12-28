@@ -1,11 +1,11 @@
 module {
-  func @multiply_transpose(%arg0: tensor<*xf64>, %arg1: tensor<*xf64>) -> tensor<*xf64> {
+  func.func @multiply_transpose(%arg0: tensor<*xf64>, %arg1: tensor<*xf64>) -> tensor<*xf64> {
     %0 = "toy.transpose"(%arg0) : (tensor<*xf64>) -> tensor<*xf64> loc("test/codegen.toy":5:10)
     %1 = "toy.transpose"(%arg1) : (tensor<*xf64>) -> tensor<*xf64> loc("test/codegen.toy":5:25)
     %2 = "toy.mul"(%0, %1) : (tensor<*xf64>, tensor<*xf64>) -> tensor<*xf64> loc("test/codegen.toy":5:25)
     "toy.return"(%2) : (tensor<*xf64>) -> () loc("test/codegen.toy":5:3)
   } loc("test/codegen.toy":4:1)
-  func @main() {
+  func.func @main() {
     %0 = "toy.constant"() {value = dense<[[1.000000e+00, 2.000000e+00, 3.000000e+00], [4.000000e+00, 5.000000e+00, 6.000000e+00]]> : tensor<2x3xf64>} : () -> tensor<2x3xf64> loc("test/codegen.toy":9:17)
     %1 = "toy.reshape"(%0) : (tensor<2x3xf64>) -> tensor<2x3xf64> loc("test/codegen.toy":9:3)
     %2 = "toy.constant"() {value = dense<[1.000000e+00, 2.000000e+00, 3.000000e+00, 4.000000e+00, 5.000000e+00, 6.000000e+00]> : tensor<6xf64>} : () -> tensor<6xf64> loc("test/codegen.toy":10:17)
@@ -16,7 +16,7 @@ module {
     "toy.return"() : () -> () loc("test/codegen.toy":8:1)
   } loc("test/codegen.toy":8:1)
   
-func @main() {
+func.func @main() {
   %cst = constant 1.000000e+00 : f64
   %cst_0 = constant 2.000000e+00 : f64
   %cst_1 = constant 3.000000e+00 : f64
@@ -64,7 +64,7 @@ func @main() {
   return
 }
 
-func @main() {
+func.func @main() {
   %cst = constant 1.000000e+00 : f64
   %cst_0 = constant 2.000000e+00 : f64
   %cst_1 = constant 3.000000e+00 : f64
@@ -104,7 +104,7 @@ func @main() {
 } loc("test/codegen.toy":0:0)
 
 module {
-  func @multiply_transpose(%arg0: !toy.struct<tensor<*xf64>, tensor<*xf64>>) {
+  func.func @multiply_transpose(%arg0: !toy.struct<tensor<*xf64>, tensor<*xf64>>) {
     "toy.return"() : () -> ()
   }
 }

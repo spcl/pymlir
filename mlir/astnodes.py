@@ -641,7 +641,7 @@ class Function(Node):
     location: Optional[Location] = None
 
     def dump(self, indent=0) -> str:
-        result = 'func'
+        result = 'func.func'
         result += ' %s' % self.name.dump(indent)
         arg_list = self.args if self.args else []
         result += '(%s)' % ', '.join(

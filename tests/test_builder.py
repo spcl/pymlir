@@ -3,6 +3,7 @@ from mlir import parse_string
 from mlir.builder import IRBuilder
 from mlir.builder import Reads, Writes, Isa
 from mlir.dialects.affine import AffineLoadOp
+from mlir.dialects.func import func
 from mlir.dialects.standard import AddfOperation
 
 
@@ -32,14 +33,14 @@ def test_saxpy_builder():
         axpyi = builder.addf(builder.affine.load(y, i, Mref1D), axi, F64)
         builder.affine.store(axpyi, y, i, Mref1D)
 
-    builder.ret()
+    builder.func.ret()
 
     print(mlirfile.dump())
 
 
 def test_query():
     block = parse_string("""
-func @saxpy(%a : f64, %x : memref<?xf64>, %y : memref<?xf64>) {
+func.func @saxpy(%a : f64, %x : memref<?xf64>, %y : memref<?xf64>) {
 %c0 = constant 0 : index
 %n = dim %x, %c0 : memref<?xf64>
 
@@ -51,7 +52,7 @@ affine.for %i = 0 to %n {
   affine.store %axpyi, %y[%i] : memref<?xf64>
 }
 return
-}""").default_module.region.body[0].body[0].op.region.body[0]
+}""", dialects=[func]).default_module.region.body[0].body[0].op.region.body[0]
     for_block = block.body[2].op.region.body[0]
 
     c0 = block.body[0].result_list[0].value
@@ -96,7 +97,7 @@ def test_build_with_queries():
     with builder.goto_after(Reads(b0) & Isa(AddfOperation)):
         builder.addf(c0, c1, F64)
 
-    builder.ret()
+    builder.func.ret()
 
     assert index(Reads(b0)) == 0
     assert index(Reads(c0)) == 1

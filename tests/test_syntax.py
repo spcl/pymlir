@@ -1,17 +1,22 @@
 """ Tests pyMLIR on different syntactic edge-cases. """
 
 from mlir import Parser
+from mlir.dialects.func import func 
+import pytest
 from typing import Optional
 
+@pytest.fixture
+def parser(parser: Optional[Parser] = None) -> Parser:
+    return parser if parser is not None else Parser(dialects=[func])
 
-def test_attributes(parser: Optional[Parser] = None):
+def test_attributes(parser):
     code = '''
 module {
-  func @myfunc(%tensor: tensor<256x?xf64>) -> tensor<*xf64> {
+  func.func @myfunc(%tensor: tensor<256x?xf64>) -> tensor<*xf64> {
     %t_tensor = "with_attributes"(%tensor) { inplace = true, abc = -123, bla = unit, hello_world = "hey", value=@this::@is::@hierarchical, somelist = ["of", "values"], last = {butnot = "least", dictionaries = 0xabc} } : (tensor<2x3xf64>) -> tuple<vector<3xi33>,tensor<2x3xf64>> 
     return %t_tensor : tensor<3x2xf64>
   }
-  func @toy_func(%arg0: tensor<2x3xf64>) -> tensor<3x2xf64> {
+  func.func @toy_func(%arg0: tensor<2x3xf64>) -> tensor<3x2xf64> {
     %0:2 = "toy.split"(%arg0) : (tensor<2x3xf64>) -> (tensor<3x2xf64>, f32)
     return %0#50 : tensor<3x2xf64>
   }
@@ -22,10 +27,10 @@ module {
     print(module.pretty())
 
 
-def test_memrefs(parser: Optional[Parser] = None):
+def test_memrefs(parser):
     code = '''
 module {
-  func @myfunc() {
+  func.func @myfunc() {
         %a, %b = "tensor_replicator"(%tensor, %tensor) : (memref<?xbf16, 2>, 
           memref<?xf32, offset: 5, strides: [6, 7]>,
           memref<*xf32, 8>)
@@ -37,10 +42,10 @@ module {
     print(module.pretty())
 
 
-def test_trailing_loc(parser: Optional[Parser] = None):
+def test_trailing_loc(parser):
     code = '''
     module {
-      func @myfunc() {
+      func.func @myfunc() {
         %c:2 = addf %a, %b : f32 loc("test_syntax.py":36:59)
       }
     } loc("hi.mlir":30:1)
@@ -50,7 +55,7 @@ def test_trailing_loc(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
-def test_modules(parser: Optional[Parser] = None):
+def test_modules(parser):
     code = '''
 module {
   module {
@@ -77,13 +82,13 @@ module {
     print(module.pretty())
 
 
-def test_functions(parser: Optional[Parser] = None):
+def test_functions(parser):
     code = '''
     module {
-      func @myfunc_a() {
+      func.func @myfunc_a() {
         %c:2 = addf %a, %b : f32
       }
-      func @myfunc_b() {
+      func.func @myfunc_b() {
         %d:2 = addf %a, %b : f64
         ^e:
         %f:2 = addf %d, %d : f64
@@ -94,9 +99,9 @@ def test_functions(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
-def test_toplevel_function(parser: Optional[Parser] = None):
+def test_toplevel_function(parser):
     code = '''
-    func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
+    func.func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
       %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
       return %t_tensor : tensor<3x2xf64>
     }'''
@@ -106,13 +111,13 @@ def test_toplevel_function(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
-def test_toplevel_functions(parser: Optional[Parser] = None):
+def test_toplevel_functions(parser):
     code = '''
-    func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
+    func.func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
       %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
       return %t_tensor : tensor<3x2xf64>
     }
-    func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
+    func.func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
       %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
       return %t_tensor : tensor<3x2xf64>
     }'''
@@ -122,14 +127,14 @@ def test_toplevel_functions(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
-def test_affine(parser: Optional[Parser] = None):
+def test_affine(parser):
     code = '''
-func @empty() {
+func.func @empty() {
   affine.for %i = 0 to 10 {
   } {some_attr = true}
   %0 = affine.min affine_map<(d0)[s0] -> (1000, d0 + 512, s0)> (%arg0)[%arg1]
 }
-func @valid_symbols(%arg0: index, %arg1: index, %arg2: index) {
+func.func @valid_symbols(%arg0: index, %arg1: index, %arg2: index) {
   %c0 = constant 1 : index
   %c1 = constant 0 : index
   %b = alloc()[%N] : memref<4x4xf32, (d0, d1)[s0] -> (d0, d0 + d1 + s0 floordiv 2)>
@@ -154,7 +159,7 @@ func @valid_symbols(%arg0: index, %arg1: index, %arg2: index) {
     print(module.pretty())
 
 
-def test_definitions(parser: Optional[Parser] = None):
+def test_definitions(parser):
     code = '''
 #map0 = affine_map<(d0, d1) -> (d0, d1)>
 #map1 = affine_map<(d0) -> (d0)>
@@ -201,10 +206,10 @@ def test_definitions(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
-def test_generic_dialect_std(parser: Optional[Parser] = None):
+def test_generic_dialect_std(parser):
     code = '''
 "module"() ( {
-  "func"() ( {
+  "func.func"() ( {
   ^bb0(%arg0: i32, %arg1: i32):  // no predecessors
     %0 = "std.addi"(%arg1, %arg0) : (i32, i32) -> i32
     "std.return"(%0) : (i32) -> ()
@@ -215,10 +220,10 @@ def test_generic_dialect_std(parser: Optional[Parser] = None):
     module = parser.parse(code)
     print(module.pretty())
 
-def test_generic_dialect_std_cond_br(parser: Optional[Parser] = None):
+def test_generic_dialect_std_cond_br(parser):
     code = '''
 "module"() ( {
-"func"() ( {
+"func.func"() ( {
 ^bb0(%arg0: i32):  // no predecessors
     %c1_i32 = "std.constant"() {value = 1 : i32} : () -> i32
     %0 = "std.cmpi"(%arg0, %c1_i32) {predicate = 3 : i64} : (i32, i32) -> i1
@@ -234,7 +239,7 @@ def test_generic_dialect_std_cond_br(parser: Optional[Parser] = None):
     module = parser.parse(code)
     print(module.pretty())
 
-def test_generic_dialect_llvm(parser: Optional[Parser] = None):
+def test_generic_dialect_llvm(parser):
     code = '''
 "module"() ( {
   "llvm.func"() ( {
@@ -249,10 +254,10 @@ def test_generic_dialect_llvm(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
-def test_generic_dialect_generic_op(parser: Optional[Parser] = None):
+def test_generic_dialect_generic_op(parser):
     code = '''
 "module"() ( {
-  "func"() ( {
+  "func.func"() ( {
   ^bb0(%arg0: i32, %arg1: i32):  // no predecessors
     %0 = "generic_op_with_region"(%arg0, %arg1) ( {
       %1 = "std.addi"(%arg1, %arg0) : (i32, i32) -> i32
@@ -283,9 +288,9 @@ def test_generic_dialect_generic_op(parser: Optional[Parser] = None):
     print(module.pretty())
 
 
-def test_integer_sign(parser: Optional[Parser] = None):
+def test_integer_sign(parser):
     code = '''
-func @integer_test(%a: si16, %b: ui32, %c: i7) {
+func.func @integer_test(%a: si16, %b: ui32, %c: i7) {
   return
 }
     '''
@@ -295,7 +300,7 @@ func @integer_test(%a: si16, %b: ui32, %c: i7) {
 
 
 if __name__ == '__main__':
-    p = Parser()
+    p = Parser(dialects=[func])
     print("MLIR parser created")
     test_attributes(p)
     test_memrefs(p)
