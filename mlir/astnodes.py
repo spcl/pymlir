@@ -643,9 +643,9 @@ class Function(Node):
     def dump(self, indent=0) -> str:
         result = 'func'
         result += ' %s' % self.name.dump(indent)
-        if self.args:
-            result += '(%s)' % ', '.join(
-                dump_or_value(arg, indent) for arg in self.args)
+        arg_list = self.args if self.args else []
+        result += '(%s)' % ', '.join(
+            dump_or_value(arg, indent) for arg in arg_list)
         if self.result_types:
             if not isinstance(self.result_types, list):
                 result += ' -> ' + dump_or_value(self.result_types, indent)
