@@ -19,6 +19,20 @@ def test_toy_roundtrip():
     dump = module.dump()
     assert dump == code
 
+def test_function_no_args():
+    """
+    Test round-tripping a function with no arguments.
+    """
+    code = '''module {
+  func @toy_func() -> index {
+    %c0 = constant 0 : index
+    return %0 : index
+  }
+}'''
+
+    module = parse_string(code)
+    dump = module.dump()
+    assert dump == code
 
 def test_affine_expr_roundtrip():
     """
