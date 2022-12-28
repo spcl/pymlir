@@ -25,7 +25,7 @@ def test_function_no_args():
     """
     code = '''module {
   func @toy_func() -> index {
-    %c0 = constant 0 : index
+    %0 = constant 0 : index
     return %0 : index
   }
 }'''
