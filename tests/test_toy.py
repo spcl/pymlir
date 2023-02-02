@@ -15,12 +15,12 @@ module {
 }
     '''
 
-    module = parse_string(code, dialects=[func])
+    module = parse_string(code)
     print(module.pretty())
 
 
 def test_toy_advanced():
-    module = parse_path(os.path.join(os.path.dirname(__file__), 'toy.mlir'), dialects=[func])
+    module = parse_path(os.path.join(os.path.dirname(__file__), 'toy.mlir'))
     print(module.pretty())
 
 

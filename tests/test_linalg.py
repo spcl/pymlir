@@ -7,7 +7,7 @@ from mlir.dialects.func import func
 
 
 def assert_roundtrip_equivalence(source):
-    assert source == mlir.parse_string(source, dialects=[func]).dump()
+    assert source == mlir.parse_string(source).dump()
 
 
 def test_batch_matmul():

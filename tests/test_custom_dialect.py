@@ -83,7 +83,7 @@ def test_custom_dialect():
     return %t_tensor : tensor<32x14xf64>
   }
 }'''
-    m = parse_string(code, dialects=[func, my_dialect])
+    m = parse_string(code, dialects=[my_dialect])
     dump = m.pretty()
     print(dump)
 

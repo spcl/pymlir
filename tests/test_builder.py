@@ -3,7 +3,6 @@ from mlir import parse_string
 from mlir.builder import IRBuilder
 from mlir.builder import Reads, Writes, Isa
 from mlir.dialects.affine import AffineLoadOp
-from mlir.dialects.func import func
 from mlir.dialects.standard import AddfOperation
 
 
@@ -52,7 +51,7 @@ affine.for %i = 0 to %n {
   affine.store %axpyi, %y[%i] : memref<?xf64>
 }
 return
-}""", dialects=[func]).default_module.region.body[0].body[0].op.region.body[0]
+}""").default_module.region.body[0].body[0].op.region.body[0]
     for_block = block.body[2].op.region.body[0]
 
     c0 = block.body[0].result_list[0].value

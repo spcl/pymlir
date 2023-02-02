@@ -7,7 +7,7 @@ from typing import Optional
 
 @pytest.fixture
 def parser(parser: Optional[Parser] = None) -> Parser:
-    return parser if parser is not None else Parser(dialects=[func])
+    return parser if parser is not None else Parser()
 
 
 # Sample code to use for visitors
@@ -96,7 +96,7 @@ def test_transformer(parser):
 
 
 if __name__ == '__main__':
-    p = Parser(dialects=[func])
+    p = Parser()
     print("MLIR parser created")
     test_visitor(p)
     test_transformer(p)

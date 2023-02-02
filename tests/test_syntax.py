@@ -7,7 +7,7 @@ from typing import Optional
 
 @pytest.fixture
 def parser(parser: Optional[Parser] = None) -> Parser:
-    return parser if parser is not None else Parser(dialects=[func])
+    return parser if parser is not None else Parser()
 
 def test_attributes(parser):
     code = '''
@@ -300,7 +300,7 @@ func.func @integer_test(%a: si16, %b: ui32, %c: i7) {
 
 
 if __name__ == '__main__':
-    p = Parser(dialects=[func])
+    p = Parser()
     print("MLIR parser created")
     test_attributes(p)
     test_memrefs(p)
