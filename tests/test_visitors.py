@@ -47,7 +47,7 @@ module {
 '''
 
 
-def test_visitor(parser):
+def test_visitor(parser: Optional[Parser] = None):
     class MyVisitor(NodeVisitor):
         def __init__(self):
             self.functions = 0
@@ -64,7 +64,7 @@ def test_visitor(parser):
     assert visitor.functions == 3
 
 
-def test_transformer(parser):
+def test_transformer(parser: Optional[Parser] = None):
     # Simple node transformer that removes all operations with a result
     class RemoveAllResultOps(NodeTransformer):
         def visit_Operation(self, node: astnodes.Operation):

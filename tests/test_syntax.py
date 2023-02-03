@@ -9,7 +9,7 @@ from typing import Optional
 def parser(parser: Optional[Parser] = None) -> Parser:
     return parser if parser is not None else Parser()
 
-def test_attributes(parser):
+def test_attributes(parser: Optional[Parser] = None):
     code = '''
 module {
   func.func @myfunc(%tensor: tensor<256x?xf64>) -> tensor<*xf64> {
@@ -27,7 +27,7 @@ module {
     print(module.pretty())
 
 
-def test_memrefs(parser):
+def test_memrefs(parser: Optional[Parser] = None):
     code = '''
 module {
   func.func @myfunc() {
@@ -42,7 +42,7 @@ module {
     print(module.pretty())
 
 
-def test_trailing_loc(parser):
+def test_trailing_loc(parser: Optional[Parser] = None):
     code = '''
     module {
       func.func @myfunc() {
@@ -55,7 +55,7 @@ def test_trailing_loc(parser):
     print(module.pretty())
 
 
-def test_modules(parser):
+def test_modules(parser: Optional[Parser] = None):
     code = '''
 module {
   module {
@@ -82,7 +82,7 @@ module {
     print(module.pretty())
 
 
-def test_functions(parser):
+def test_functions(parser: Optional[Parser] = None):
     code = '''
     module {
       func.func @myfunc_a() {
@@ -99,7 +99,7 @@ def test_functions(parser):
     print(module.pretty())
 
 
-def test_toplevel_function(parser):
+def test_toplevel_function(parser: Optional[Parser] = None):
     code = '''
     func.func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
       %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
@@ -111,7 +111,7 @@ def test_toplevel_function(parser):
     print(module.pretty())
 
 
-def test_toplevel_functions(parser):
+def test_toplevel_functions(parser: Optional[Parser] = None):
     code = '''
     func.func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
       %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
@@ -127,7 +127,7 @@ def test_toplevel_functions(parser):
     print(module.pretty())
 
 
-def test_affine(parser):
+def test_affine(parser: Optional[Parser] = None):
     code = '''
 func.func @empty() {
   affine.for %i = 0 to 10 {
@@ -159,7 +159,7 @@ func.func @valid_symbols(%arg0: index, %arg1: index, %arg2: index) {
     print(module.pretty())
 
 
-def test_definitions(parser):
+def test_definitions(parser: Optional[Parser] = None):
     code = '''
 #map0 = affine_map<(d0, d1) -> (d0, d1)>
 #map1 = affine_map<(d0) -> (d0)>
@@ -206,7 +206,7 @@ def test_definitions(parser):
     print(module.pretty())
 
 
-def test_generic_dialect_std(parser):
+def test_generic_dialect_std(parser: Optional[Parser] = None):
     code = '''
 "module"() ( {
   "func.func"() ( {
@@ -220,7 +220,7 @@ def test_generic_dialect_std(parser):
     module = parser.parse(code)
     print(module.pretty())
 
-def test_generic_dialect_std_cond_br(parser):
+def test_generic_dialect_std_cond_br(parser: Optional[Parser] = None):
     code = '''
 "module"() ( {
 "func.func"() ( {
@@ -239,7 +239,7 @@ def test_generic_dialect_std_cond_br(parser):
     module = parser.parse(code)
     print(module.pretty())
 
-def test_generic_dialect_llvm(parser):
+def test_generic_dialect_llvm(parser: Optional[Parser] = None):
     code = '''
 "module"() ( {
   "llvm.func"() ( {
@@ -254,7 +254,7 @@ def test_generic_dialect_llvm(parser):
     print(module.pretty())
 
 
-def test_generic_dialect_generic_op(parser):
+def test_generic_dialect_generic_op(parser: Optional[Parser] = None):
     code = '''
 "module"() ( {
   "func.func"() ( {
@@ -288,7 +288,7 @@ def test_generic_dialect_generic_op(parser):
     print(module.pretty())
 
 
-def test_integer_sign(parser):
+def test_integer_sign(parser: Optional[Parser] = None):
     code = '''
 func.func @integer_test(%a: si16, %b: ui32, %c: i7) {
   return
