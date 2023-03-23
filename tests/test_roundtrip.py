@@ -1,6 +1,7 @@
 """ Tests pyMLIR in a parse->dump->parse round-trip. """
 
 from mlir import parse_string
+from mlir.dialects.func import func 
 
 
 def test_toy_roundtrip():
@@ -9,7 +10,7 @@ def test_toy_roundtrip():
     and dump the same way.
     """
     code = '''module {
-  func @toy_func(%arg0: tensor<2x3xf64>) -> tensor<3x2xf64> {
+  func.func @toy_func(%arg0: tensor<2x3xf64>) -> tensor<3x2xf64> {
     %0 = "toy.transpose"(%arg0) {inplace = true} : (tensor<2x3xf64>) -> tensor<3x2xf64>
     return %0 : tensor<3x2xf64>
   }
@@ -19,6 +20,20 @@ def test_toy_roundtrip():
     dump = module.dump()
     assert dump == code
 
+def test_function_no_args():
+    """
+    Test round-tripping a function with no arguments.
+    """
+    code = '''module {
+  func.func @toy_func() -> index {
+    %0 = constant 0 : index
+    return %0 : index
+  }
+}'''
+
+    module = parse_string(code)
+    dump = module.dump()
+    assert dump == code
 
 def test_affine_expr_roundtrip():
     """
@@ -51,7 +66,7 @@ def test_affine_expr_roundtrip():
 
 def test_loop_dialect_roundtrip():
     src = """module {
-  func @for(%outer: index, %A: memref<?xf32>, %B: memref<?xf32>, %C: memref<?xf32>, %result: memref<?xf32>) {
+  func.func @for(%outer: index, %A: memref<?xf32>, %B: memref<?xf32>, %C: memref<?xf32>, %result: memref<?xf32>) {
     %c0 = constant 0 : index
     %c1 = constant 1 : index
     %d0 = dim %A , %c0 : memref<?xf32>

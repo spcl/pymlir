@@ -4,6 +4,7 @@ from typing import List, Union, Optional
 from mlir import parse_string
 from mlir.astnodes import Node, dump_or_value, SsaId, StringLiteral, TensorType, MemRefType, Dimension
 from mlir.dialect import Dialect, DialectOp, DialectType
+from mlir.dialects.func import func
 from dataclasses import dataclass
 
 
@@ -77,7 +78,7 @@ toy_impl_list   : toy_impl_type ("+" toy_impl_type)*
 
 def test_custom_dialect():
     code = '''module {
-  func @toy_test(%ragged: !toy.ragged<coo+csr, 32x14xf64>) -> tensor<32x14xf64> {
+  func.func @toy_test(%ragged: !toy.ragged<coo+csr, 32x14xf64>) -> tensor<32x14xf64> {
     %t_tensor = toy.densify %ragged : tensor<32x14xf64>
     return %t_tensor : tensor<32x14xf64>
   }

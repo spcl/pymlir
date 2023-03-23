@@ -32,14 +32,14 @@ def test_saxpy_builder():
         axpyi = builder.addf(builder.affine.load(y, i, Mref1D), axi, F64)
         builder.affine.store(axpyi, y, i, Mref1D)
 
-    builder.ret()
+    builder.func.ret()
 
     print(mlirfile.dump())
 
 
 def test_query():
     block = parse_string("""
-func @saxpy(%a : f64, %x : memref<?xf64>, %y : memref<?xf64>) {
+func.func @saxpy(%a : f64, %x : memref<?xf64>, %y : memref<?xf64>) {
 %c0 = constant 0 : index
 %n = dim %x, %c0 : memref<?xf64>
 
@@ -96,7 +96,7 @@ def test_build_with_queries():
     with builder.goto_after(Reads(b0) & Isa(AddfOperation)):
         builder.addf(c0, c1, F64)
 
-    builder.ret()
+    builder.func.ret()
 
     assert index(Reads(b0)) == 0
     assert index(Reads(c0)) == 1

@@ -39,7 +39,7 @@ ast1 = mlir.parse_path('/path/to/file.mlir')
 ast2 = mlir.parse_file(open('/path/to/file.mlir', 'r'))
 ast3 = mlir.parse_string('''
 module {
-  func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
+  func.func @toy_func(%tensor: tensor<2x3xf64>) -> tensor<3x2xf64> {
     %t_tensor = "toy.transpose"(%tensor) { inplace = true } : (tensor<2x3xf64>) -> tensor<3x2xf64>
     return %t_tensor : tensor<3x2xf64>
   }
@@ -150,7 +150,7 @@ print(mlirfile.dump())
 prints:
 ```mlir
 module {
-  func @hello_world(%a: f64, %b: f64) {
+  func.func @hello_world(%a: f64, %b: f64) {
     %_pymlir_ssa = addf %a , %b : f64
     return %_pymlir_ssa : f64
   }

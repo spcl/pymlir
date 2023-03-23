@@ -3,6 +3,7 @@
 import mlir.astnodes as mast
 import mlir.dialects.standard as std
 import mlir.dialects.affine as affine
+import mlir.dialects.func as func 
 from typing import Optional, Tuple, Union, List, Any
 from contextlib import contextmanager
 from mlir.builder.match import Reads, Writes, Isa, All, And, Or, Not  # noqa: F401
@@ -81,6 +82,7 @@ class IRBuilder:
 
         self._dialects = {
             "affine": AffineBuilder(self),
+            "func": FuncBuilder(self),
             "std": self,  # std dialect ops can also be globally referenced
         }
 
@@ -460,14 +462,6 @@ class IRBuilder:
 
     # }}}
 
-    def ret(self, values: Optional[List[mast.SsaId]] = None,
-            types: Optional[List[mast.Type]] = None):
-
-        op = std.ReturnOperation(match=0, values=values, types=types)
-        self._insert_op_in_block([], op)
-        self.block = None
-        self.position = 0
-
 
 @dataclass
 class DialectBuilder:
@@ -527,6 +521,20 @@ class AffineBuilder(DialectBuilder):
                                   index=mast.MultiDimAffineExpr(indices),
                                   type=memref_type)
         self.core_builder._insert_op_in_block([], op)
+
+class FuncBuilder(DialectBuilder):
+    """
+    Func dialect ops builder.
+
+    .. automethod:: ret 
+    """
+    def ret(self, values: Optional[List[mast.SsaId]] = None,
+            types: Optional[List[mast.Type]] = None):
+
+        op = func.ReturnOperation(match=0, values=values, types=types)
+        self.core_builder._insert_op_in_block([], op)
+        self.block = None
+        self.position = 0
 
 
 # vim: fdm=marker

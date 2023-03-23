@@ -233,7 +233,7 @@ function_result_list_parens : ("(" ")") | ("(" function_result_list_no_parens ")
 
 // Definition
 module : "module" optional_symbol_ref_id optional_func_mod_attrs region optional_trailing_loc
-function : "func" symbol_ref_id "(" optional_arg_list ")" optional_fn_result_list optional_func_mod_attrs optional_fn_body optional_trailing_loc
+function : "func.func" symbol_ref_id "(" optional_arg_list ")" optional_fn_result_list optional_func_mod_attrs optional_fn_body optional_trailing_loc
 generic_module : string_literal "(" optional_arg_list ")" "(" region ")" optional_attr_dict trailing_type optional_trailing_loc
 
 // ----------------------------------------------------------------------
