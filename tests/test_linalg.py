@@ -41,12 +41,12 @@ def test_conv():
 
 def test_copy():
     assert_roundtrip_equivalence("""module {
-  func.func @copy_view(%arg0: memref<?xf32, offset: ?, strides: [1]>, %arg1: memref<?xf32, offset: ?, strides: [1]>) {
-    linalg.copy( %arg0 , %arg1 )  : memref<?xf32, offset: ?, strides: [1]> , memref<?xf32, offset: ?, strides: [1]>
+  func.func @copy_view(%arg0: memref<?xf32, strided<[1], offset: ?>>, %arg1: memref<?xf32, strided<[1], offset: ?>>) {
+    linalg.copy( %arg0 , %arg1 )  : memref<?xf32, strided<[1], offset: ?>> , memref<?xf32, strided<[1], offset: ?>>
     return
   }
-  func.func @copy_view3(%arg0: memref<?x?x?xf32, offset: ?, strides: [?, ?, 1]>, %arg1: memref<?x?x?xf32, offset: ?, strides: [?, ?, 1]>) {
-    linalg.copy( %arg0 , %arg1 ) {inputPermutation = affine_map<(i, j, k) -> (i, k, j)>, outputPermutation = affine_map<(i, j, k) -> (k, j, i)>} : memref<?x?x?xf32, offset: ?, strides: [?, ?, 1]> , memref<?x?x?xf32, offset: ?, strides: [?, ?, 1]>
+  func.func @copy_view3(%arg0: memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>, %arg1: memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>) {
+    linalg.copy( %arg0 , %arg1 ) {inputPermutation = affine_map<(i, j, k) -> (i, k, j)>, outputPermutation = affine_map<(i, j, k) -> (k, j, i)>} : memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>> , memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>
     return
   }
 }""")
@@ -68,8 +68,8 @@ def test_dot():
 
 def test_fill():
     assert_roundtrip_equivalence("""module {
-  func.func @fill_view(%arg0: memref<?xf32, offset: ?, strides: [1]>, %arg1: f32) {
-    linalg.fill( %arg0 , %arg1 )  : memref<?xf32, offset: ?, strides: [1]> , f32
+  func.func @fill_view(%arg0: memref<?xf32, strided<[1], offset: ?>>, %arg1: f32) {
+    linalg.fill( %arg0 , %arg1 )  : memref<?xf32, strided<[1], offset: ?>> , f32
     return
   }
 }""")
@@ -91,8 +91,8 @@ def test_generic():
 
 def test_indexed_generic():
     assert_roundtrip_equivalence("""module {
-  func.func @indexed_generic_region(%arg0: memref<?x?xf32, offset: ?, strides: [?, 1]>, %arg1: memref<?x?x?xf32, offset: ?, strides: [?, ?, 1]>, %arg2: memref<?x?x?xf32, offset: ?, strides: [?, ?, 1]>) {
-    linalg.indexed_generic {args_in = 1, args_out = 2, iterator_types = ["parallel", "parallel", "parallel"], indexing_maps = [affine_map<(i, j, k) -> (i, j)>, affine_map<(i, j, k) -> (i, j, k)>, affine_map<(i, j, k) -> (i, k, j)>], library_call = "some_external_function_name_2", doc = "B(i,j,k), C(i,k,j) = foo(A(i, j) * B(i,j,k), i * j * k + C(i,k,j))"}  ins( %arg0 : memref<?x?xf32, offset: ?, strides: [?, 1]> ) outs( %arg1, %arg2 : memref<?x?x?xf32, offset: ?, strides: [?, ?, 1]>, memref<?x?x?xf32, offset: ?, strides: [?, ?, 1]> ) {
+  func.func @indexed_generic_region(%arg0: memref<?x?xf32, strided<[?, 1], offset: ?>>, %arg1: memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>, %arg2: memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>) {
+    linalg.indexed_generic {args_in = 1, args_out = 2, iterator_types = ["parallel", "parallel", "parallel"], indexing_maps = [affine_map<(i, j, k) -> (i, j)>, affine_map<(i, j, k) -> (i, j, k)>, affine_map<(i, j, k) -> (i, k, j)>], library_call = "some_external_function_name_2", doc = "B(i,j,k), C(i,k,j) = foo(A(i, j) * B(i,j,k), i * j * k + C(i,k,j))"}  ins( %arg0 : memref<?x?xf32, strided<[?, 1], offset: ?>> ) outs( %arg1, %arg2 : memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>, memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>> ) {
       ^bb0 (%i: index, %j: index, %k: index, %a: f32, %b: f32, %c: f32):
         %result_1 = mulf %a , %b : f32
         %ij = addi %i , %j : index
@@ -116,8 +116,8 @@ def test_view():
     %2 = linalg.range %arg0 : %arg1 : %arg 2 : !linalg.range
     %3 = view %1 [ %c0 ] [ %arg0, %arg0 ] : memref<?xi8> to memref<?x?xf32>
     %4 = linalg.slice %3 [ %2, %2 ] : memref<?x?xf32> , !linalg.range, !linalg.range  , memref<?x?xf32>
-    %5 = linalg.slice %3 [ %2, %arg2 ] : memref<?x?xf32> , !linalg.range, index  , memref<?xf32, offset: ?, strides: [1]>
-    %6 = linalg.slice %3 [ %arg2, %2 ] : memref<?x?xf32> , index, !linalg.range  , memref<?xf32, offset: ?, strides: [1]>
+    %5 = linalg.slice %3 [ %2, %arg2 ] : memref<?x?xf32> , !linalg.range, index  , memref<?xf32, strided<[1], offset: ?>>
+    %6 = linalg.slice %3 [ %arg2, %2 ] : memref<?x?xf32> , index, !linalg.range  , memref<?xf32, strided<[1], offset: ?>>
     %7 = linalg.slice %3 [ %arg2, %arg3 ] : memref<?x?xf32> , index, index  , memref<f32>
     %8 = view %1 [ %c0 ] [ %arg0, %arg0 ] : memref<?xi8> to memref<?x?xvector<4x4xf32>>
     dealloc %1 : memref<?xi8>

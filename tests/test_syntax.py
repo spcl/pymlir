@@ -32,7 +32,7 @@ def test_memrefs(parser: Optional[Parser] = None):
 module {
   func.func @myfunc() {
         %a, %b = "tensor_replicator"(%tensor, %tensor) : (memref<?xbf16, 2>, 
-          memref<?xf32, offset: 5, strides: [6, 7]>,
+          memref<?xf32, strided<[6, 7], offset: 5>>,
           memref<*xf32, 8>)
   }
 }
