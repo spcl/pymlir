@@ -200,27 +200,27 @@ class IRBuilder:
                    dtype: mast.Type,
                    shape: Optional[Tuple[Optional[int], ...]],
                    offset: Optional[int] = None,
-                   strides: Optional[Tuple[Optional[int], ...]] = None
+                   strided: Optional[Tuple[Optional[int], ...]] = None
                    ) -> mast.MemRefType:
         """
         Returns an instance of :class:`mlir.astnodes.UnrankedMemRefType` if shape is
         *None*, else returns a :class:`mlir.astnodes.RankedMemRefType`.
         """
         if shape is None:
-            assert strides is None
+            assert strided is None
             return mast.UnrankedMemRefType(dtype)
         else:
             shape = tuple(mast.Dimension(dim) for dim in shape)
-            if strides is None and offset is None:
+            if strided is None and offset is None:
                 layout = None
             else:
                 if offset is None:
                     offset = 0
-                if strides is not None:
-                    if len(shape) != len(strides):
-                        raise ValueError("shapes and strides must be of tuples"
+                if strided is not None:
+                    if len(shape) != len(strided):
+                        raise ValueError("shapes and strided must be of tuples"
                                          " of same dimensionality.")
-                layout = mast.StridedLayout(strides, offset)
+                layout = mast.StridedLayout(strided, offset)
 
             return mast.RankedMemRefType(shape, dtype, layout)
 
