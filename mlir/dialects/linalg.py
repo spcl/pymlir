@@ -144,6 +144,10 @@ class LinalgGeneric(DialectOp):
                  " {region.region}"),
                 ("linalg.generic {attr.attribute_value} "
                  " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " outs( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
+                 " {region.region} -> {out_type.type}"),
+                ("linalg.generic {attr.attribute_value} "
+                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
                  " init( {init_args.ssa_id_list} : {init_types.type_list_no_parens} )"
                  " {region.region} -> {out_type.type}")]
 
