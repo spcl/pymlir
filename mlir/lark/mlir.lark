@@ -79,7 +79,7 @@ tensor_type : ranked_tensor_type | unranked_tensor_type
 
 // Memref type
 stride_list : "[" (dimension ("," dimension)*)? "]"
-strided_layout : "offset:" dimension "," "strides: " stride_list
+strided_layout : "strided" "<" stride_list ("," "offset:" dimension)? ">"
 ?layout_specification : semi_affine_map | strided_layout
 ?memory_space : integer_literal // | TODO(mlir): address_space_id
 ranked_memref_type : "memref" "<" dimension_list_ranked tensor_memref_element_type  optional_layout_specification optional_memory_space ">"

@@ -217,12 +217,15 @@ class MemRefType(Type):
 
 @dataclass
 class StridedLayout(Node):
+    strided: Optional[List[int]] = None
     offset: int = 0
-    strides: Optional[List[int]] = None
 
     def dump(self, indent: int = 0) -> str:
-        return 'offset: %s, strides: [%s]' % (dump_or_value(
-            self.offset, indent), dump_or_value(self.strides, indent))
+        result = 'strided<[%s]' % dump_or_value(self.strided, indent)
+        if self.offset is not None:
+            result += ', offset: %s' % dump_or_value(self.offset, indent)
+        result += '>'
+        return result
 
 
 @dataclass
