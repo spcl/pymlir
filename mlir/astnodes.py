@@ -126,7 +126,7 @@ class FloatTypeEnum(Enum):
 
 @dataclass
 class FloatType(Type):
-    type: FloatTypeEnum
+    type: str
 
     def dump(self, indent: int = 0) -> str:
         return self.type.name
