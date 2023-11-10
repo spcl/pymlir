@@ -114,16 +114,21 @@ class LinalgDot(DialectOp):
 
 @dataclass
 class LinalgFill(DialectOp):
-    output_id: mast.SsaId
-    value_id: mast.SsaId
-    output_type: mast.Type
-    value_type: mast.Type
+    in_id: mast.SsaId
+    in_type: mast.Type
+    out_id: mast.SsaId
+    out_type: mast.Type
+    res_type: mast.Type
     attr: Optional[mast.Attribute] = None
 
-    _syntax_ = [("linalg.fill( {output_id.ssa_id} , {value_id.ssa_id} ) "
-                "{attr.attribute_value} : {output_type.type} , {value_type.type}"),
-                ("linalg.fill( {output_id.ssa_id} , {value_id.ssa_id} ) "
-                " : {output_type.type} , {value_type.type}")]
+    _syntax_ = [("linalg.fill"
+                 " ins( {in_id.ssa_id} : {in_type.type} )"
+                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 "  {attr.attribute_value} -> {res_type.type}"),
+                ("linalg.fill"
+                 " ins( {in_id.ssa_id} : {in_type.type} )"
+                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 " -> {res_type.type}")]
 
 
 @dataclass
