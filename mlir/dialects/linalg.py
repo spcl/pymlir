@@ -285,6 +285,9 @@ class LinalgMatmul(DialectOp):
                  " outs( {c_id.ssa_id} : {c_type.type} )"),
                 ("linalg.matmul"
                  " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
+                 " outs( {c_id.ssa_id} : {c_type.type} ) -> {out_type.type}"),
+                ("linalg.matmul"
+                 " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
                  " init( {c_id.ssa_id} : {c_type.type} )  -> {out_type.type}")]
 
 

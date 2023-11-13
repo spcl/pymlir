@@ -136,6 +136,7 @@ def test_matmul():
     %B = view %arg0 [ %c0 ] [ %K, %N ] : memref<?xi8> to memref<?x?xf32>
     %C = view %arg0 [ %c0 ] [ %M, %N ] : memref<?xi8> to memref<?x?xf32>
     linalg.matmul ins( %A , %B : memref<?x?xf32> , memref<?x?xf32> ) outs( %C : memref<?x?xf32> )
+    linalg.matmul ins( %A , %B : memref<?x?xf32> , memref<?x?xf32> ) outs( %C : memref<?x?xf32> ) -> memref<?x?xf32>
     return
   }
 }""")
