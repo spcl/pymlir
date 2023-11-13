@@ -118,13 +118,20 @@ class LinalgFill(DialectOp):
     in_type: mast.Type
     out_id: mast.SsaId
     out_type: mast.Type
-    res_type: mast.Type
+    res_type: Optional[mast.Type] = None
     attr: Optional[mast.Attribute] = None
 
     _syntax_ = [("linalg.fill"
                  " ins( {in_id.ssa_id} : {in_type.type} )"
                  " outs( {out_id.ssa_id} : {out_type.type} )"
-                 "  {attr.attribute_value} -> {res_type.type}"),
+                 " {attr.attribute_value}"),
+                ("linalg.fill"
+                 " ins( {in_id.ssa_id} : {in_type.type} )"
+                 " outs( {out_id.ssa_id} : {out_type.type} )"),
+                ("linalg.fill"
+                 " ins( {in_id.ssa_id} : {in_type.type} )"
+                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 " {attr.attribute_value} -> {res_type.type}"),
                 ("linalg.fill"
                  " ins( {in_id.ssa_id} : {in_type.type} )"
                  " outs( {out_id.ssa_id} : {out_type.type} )"
