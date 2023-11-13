@@ -70,6 +70,7 @@ def test_fill():
     assert_roundtrip_equivalence("""module {
   func.func @fill_view(%arg0: f32, %arg1: tensor<?x?xf32>) {
     linalg.fill ins( %arg0 : f32 ) outs( %arg1 : tensor<?x?xf32> ) -> tensor<?x?xf32>
+    linalg.fill ins( %arg0 : f32 ) outs( %arg1 : tensor<?x?xf32> )
     return
   }
 }""")
