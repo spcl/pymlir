@@ -221,6 +221,9 @@ region_list : "(" region? ("," region)* ")"
 // Arguments
 named_argument : ssa_id ":" type optional_attr_dict
 argument_list : (named_argument ("," named_argument)*) | (type optional_attr_dict ("," type optional_attr_dict)*)
+argument_assignment : ssa_id "=" ssa_id
+argument_assignment_list_no_parens : argument_assignment ("," argument_assignment)*
+argument_assignment_list_parens : ("(" ")") | ("(" argument_assignment_list_no_parens ")")
 
 // Return values
 function_result : type optional_attr_dict
