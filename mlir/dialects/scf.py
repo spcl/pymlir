@@ -15,7 +15,7 @@ class SCFForOp(DialectOp):
     end: mast.SsaId
     step: mast.SsaId
     body: mast.Region
-    iter_args: Optional[List[Tuple[mast.SsaId, mast.Type]]] = None
+    iter_args: Optional[List[Tuple[mast.SsaId, mast.SsaId]]] = None
     iter_args_types: Optional[List[mast.Type]] = None
     out_type: Optional[mast.Type] = None
     _syntax_ = ['scf.for {index.ssa_id} = {begin.ssa_id} to {end.ssa_id} step {step.ssa_id} {body.region}',
