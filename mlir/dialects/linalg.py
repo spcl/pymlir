@@ -5,8 +5,10 @@ import sys
 import mlir.astnodes as mast
 from mlir.dialect import Dialect, DialectOp, is_op
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Tuple, Union
 
+Literal = Union[mast.StringLiteral, float, int, bool]
+SsaUse = Union[mast.SsaId, Literal]
 
 @dataclass
 class LinalgBatchMatmul(DialectOp):
@@ -199,6 +201,22 @@ class LinalgRange(DialectOp):
                 ("linalg.range {min_id.ssa_id} : {max_id.ssa_id} : {step_id.ssa_id}"
                  " : {out_type.type}")]
 
+
+@dataclass
+class LinalgReduce(DialectOp):
+    inargs: List[mast.SsaId]
+    in_types: List[mast.Type]
+    outargs: List[mast.SsaId]
+    out_types: List[mast.Type]
+    dimensions: List[SsaUse]
+    region: mast.Region
+    args: List[Tuple[mast.SsaId, mast.Type]]
+
+    _syntax_ = [("linalg.reduce"
+                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " outs( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
+                 " dimensions = [ {dimensions.ssa_use_list} ]"
+                 " ( {args.argument_list} ) {region.region}")]
 
 @dataclass
 class LinalgReshape(DialectOp):

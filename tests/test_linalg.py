@@ -106,6 +106,17 @@ def test_indexed_generic():
     return
   }
 }""")
+    
+def test_reduce():
+    assert_roundtrip_equivalence("""module {
+  func.func @reduce(%arg0: tensor<16x32x64xf32>, %arg1: tensor<16x64xf32>) {
+    %reduce = linalg.reduce ins( %arg0 : tensor<16x32x64xf32> ) outs( %arg1 : tensor<16x64xf32> ) dimensions = [ 1 ] ( %in: f32, %out: f32 ) {
+      %0 = arith.addf %out, %in : f32
+      linalg.yield %0 : f32
+    }
+    return
+  }
+}""")
 
 
 def test_view():
