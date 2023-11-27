@@ -200,6 +200,7 @@ class TreeToMlir(Transformer):
     symbol_use_list = list
     operation_list = list
     argument_list = list
+    argument_assignment_list_no_parens = list
     definition_list = list
     function_list = list
     module_list = list
