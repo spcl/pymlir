@@ -68,8 +68,9 @@ def test_dot():
 
 def test_fill():
     assert_roundtrip_equivalence("""module {
-  func.func @fill_view(%arg0: memref<?xf32, strided<[1], offset: ?>>, %arg1: f32) {
-    linalg.fill( %arg0 , %arg1 )  : memref<?xf32, strided<[1], offset: ?>> , f32
+  func.func @fill_view(%arg0: f32, %arg1: tensor<?x?xf32>) {
+    linalg.fill ins( %arg0 : f32 ) outs( %arg1 : tensor<?x?xf32> ) -> tensor<?x?xf32>
+    linalg.fill ins( %arg0 : f32 ) outs( %arg1 : tensor<?x?xf32> )
     return
   }
 }""")
@@ -105,6 +106,17 @@ def test_indexed_generic():
     return
   }
 }""")
+    
+def test_reduce():
+    assert_roundtrip_equivalence("""module {
+  func.func @reduce(%arg0: tensor<16x32x64xf32>, %arg1: tensor<16x64xf32>) {
+    %reduce = linalg.reduce ins( %arg0 : tensor<16x32x64xf32> ) outs( %arg1 : tensor<16x64xf32> ) dimensions = [ 1 ] ( %in: f32, %out: f32 ) {
+      %0 = arith.addf %out, %in : f32
+      linalg.yield %0 : f32
+    }
+    return
+  }
+}""")
 
 
 def test_view():
@@ -135,6 +147,7 @@ def test_matmul():
     %B = view %arg0 [ %c0 ] [ %K, %N ] : memref<?xi8> to memref<?x?xf32>
     %C = view %arg0 [ %c0 ] [ %M, %N ] : memref<?xi8> to memref<?x?xf32>
     linalg.matmul ins( %A , %B : memref<?x?xf32> , memref<?x?xf32> ) outs( %C : memref<?x?xf32> )
+    linalg.matmul ins( %A , %B : memref<?x?xf32> , memref<?x?xf32> ) outs( %C : memref<?x?xf32> ) -> memref<?x?xf32>
     return
   }
 }""")

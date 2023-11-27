@@ -5,8 +5,10 @@ import sys
 import mlir.astnodes as mast
 from mlir.dialect import Dialect, DialectOp, is_op
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Tuple, Union
 
+Literal = Union[mast.StringLiteral, float, int, bool]
+SsaUse = Union[mast.SsaId, Literal]
 
 @dataclass
 class LinalgBatchMatmul(DialectOp):
@@ -114,16 +116,28 @@ class LinalgDot(DialectOp):
 
 @dataclass
 class LinalgFill(DialectOp):
-    output_id: mast.SsaId
-    value_id: mast.SsaId
-    output_type: mast.Type
-    value_type: mast.Type
+    in_id: mast.SsaId
+    in_type: mast.Type
+    out_id: mast.SsaId
+    out_type: mast.Type
+    res_type: Optional[mast.Type] = None
     attr: Optional[mast.Attribute] = None
 
-    _syntax_ = [("linalg.fill( {output_id.ssa_id} , {value_id.ssa_id} ) "
-                "{attr.attribute_value} : {output_type.type} , {value_type.type}"),
-                ("linalg.fill( {output_id.ssa_id} , {value_id.ssa_id} ) "
-                " : {output_type.type} , {value_type.type}")]
+    _syntax_ = [("linalg.fill"
+                 " ins( {in_id.ssa_id} : {in_type.type} )"
+                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 " {attr.attribute_value}"),
+                ("linalg.fill"
+                 " ins( {in_id.ssa_id} : {in_type.type} )"
+                 " outs( {out_id.ssa_id} : {out_type.type} )"),
+                ("linalg.fill"
+                 " ins( {in_id.ssa_id} : {in_type.type} )"
+                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 " {attr.attribute_value} -> {res_type.type}"),
+                ("linalg.fill"
+                 " ins( {in_id.ssa_id} : {in_type.type} )"
+                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 " -> {res_type.type}")]
 
 
 @dataclass
@@ -187,6 +201,22 @@ class LinalgRange(DialectOp):
                 ("linalg.range {min_id.ssa_id} : {max_id.ssa_id} : {step_id.ssa_id}"
                  " : {out_type.type}")]
 
+
+@dataclass
+class LinalgReduce(DialectOp):
+    inargs: List[mast.SsaId]
+    in_types: List[mast.Type]
+    outargs: List[mast.SsaId]
+    out_types: List[mast.Type]
+    dimensions: List[SsaUse]
+    region: mast.Region
+    args: List[Tuple[mast.SsaId, mast.Type]]
+
+    _syntax_ = [("linalg.reduce"
+                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " outs( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
+                 " dimensions = [ {dimensions.ssa_use_list} ]"
+                 " ( {args.argument_list} ) {region.region}")]
 
 @dataclass
 class LinalgReshape(DialectOp):
@@ -271,6 +301,9 @@ class LinalgMatmul(DialectOp):
     _syntax_ = [("linalg.matmul"
                  " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
                  " outs( {c_id.ssa_id} : {c_type.type} )"),
+                ("linalg.matmul"
+                 " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
+                 " outs( {c_id.ssa_id} : {c_type.type} ) -> {out_type.type}"),
                 ("linalg.matmul"
                  " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
                  " init( {c_id.ssa_id} : {c_type.type} )  -> {out_type.type}")]
