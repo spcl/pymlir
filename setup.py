@@ -5,7 +5,7 @@ with open("README.md", "r") as fp:
 
 setup(
     name='pymlir',
-    version='0.3',
+    version='0.5',
     url='https://github.com/spcl/pymlir',
     author='SPCL @ ETH Zurich',
     author_email='talbn@inf.ethz.ch',
