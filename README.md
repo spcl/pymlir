@@ -143,7 +143,7 @@ with builder.goto_block(builder.make_block(module.region)):
     x, y = builder.add_function_args(hello, [builder.F64, builder.F64], ['a', 'b'])
 
     adder = builder.addf(x, y, builder.F64)
-    builder.ret([adder], [builder.F64])
+    builder.func.ret([adder], [builder.F64])
 
 print(mlirfile.dump())
 ```
