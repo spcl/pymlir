@@ -323,6 +323,20 @@ class LinalgMatvec(DialectOp):
                  " outs( {c_id.ssa_id} : {c_type.type} )")]
 
 
+@dataclass
+class LinalgTranspose(DialectOp):
+    inarg: List[mast.SsaId]
+    in_type: List[mast.Type]
+    init: List[mast.SsaId]
+    init_type: List[mast.Type]
+    permutation: List[int]
+
+    _syntax_ = [("linalg.transpose"
+                 " ins( {inarg.ssa_id_list} : {in_type.type_list_no_parens} )"
+                 " outs( {init.ssa_id_list} : {init_type.type_list_no_parens} )"
+                 " permutation = [ {permutation.ssa_use_list} ]")]
+
+
 # Inspect current module to get all classes defined above
 linalg = Dialect("linalg", ops=[m[1] for m in inspect.getmembers(
     sys.modules[__name__], lambda obj: is_op(obj, __name__))])

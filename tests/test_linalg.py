@@ -167,6 +167,15 @@ def test_matvec():
 }""")
 
 
+def test_transpose():
+    assert_roundtrip_equivalence("""module {
+  func.func @transpose(%arg0: memref<?x?xf16>, %arg1: memref<?x?xf16>) {
+    %transpose = linalg.transpose ins( %arg0 : memref<?x?xf16> ) outs( %arg1 : memref<?x?xf16> ) permutation = [ 1, 0 ]
+    return
+  }
+}""")
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         exec(sys.argv[1])
