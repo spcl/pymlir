@@ -27,7 +27,7 @@ constant_literal : bool_literal | integer_literal | float_literal | string_liter
 
 // Identifier syntax
 bare_id : (letter| underscore) (letter|digit|underscore|id_chars)*
-suffix_id : digits | bare_id
+suffix_id : digits | ((letter | id_punct) (letter | id_punct | digits)*)
 
 // Dimensions
 dimension : "?" | decimal_literal
