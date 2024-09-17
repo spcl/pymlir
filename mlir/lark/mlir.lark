@@ -335,5 +335,5 @@ mlir_file: definition_and_function_list*       -> only_functions_and_definitions
 // Things to ignore: whitespace, single-line comments
 %ignore WS
 
-COMMENT : "//" /(.)+/ NEWLINE
+COMMENT : "//" /(.)*/ NEWLINE
 %ignore COMMENT
