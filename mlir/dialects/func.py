@@ -23,7 +23,7 @@ class CallIndirectOperation(DialectOp):
 @dataclass
 class CallOperation(DialectOp):
     func: mast.SymbolRefId
-    type: mast.FunctionType
+    type: Optional[mast.FunctionType] = None
     args: Optional[List[SsaUse]] = None
     argtypes: Optional[List[mast.Type]] = None
     _syntax_ = ['func.call {func.symbol_ref_id} () : {type.function_type}',

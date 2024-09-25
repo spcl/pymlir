@@ -128,6 +128,7 @@ class TreeToMlir(Transformer):
     function = astnodes.Function.from_lark
     generic_module = astnodes.GenericModule.from_lark
     named_argument = astnodes.NamedArgument.from_lark
+    argument_assignment = astnodes.ArgumentAssignment.from_lark
 
     ###############################################################
     # (semi-)Affine expressions, maps, and integer sets

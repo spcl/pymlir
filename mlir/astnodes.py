@@ -721,6 +721,16 @@ class NamedArgument(Node):
 
 
 @dataclass
+class ArgumentAssignment(Node):
+    name: SsaId
+    value: SsaId
+
+    def dump(self, indent: int = 0) -> str:
+        return '%s = %s' % (dump_or_value(self.name, indent),
+                             dump_or_value(self.value, indent))
+
+
+@dataclass
 class MLIRFile(Node):
     definitions: List["Definition"]
     modules: List[Module]
