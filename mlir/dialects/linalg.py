@@ -332,8 +332,8 @@ class LinalgTranspose(DialectOp):
     permutation: List[int]
 
     _syntax_ = [("linalg.transpose"
-                 " ins( {inarg.ssa_id_list} : {in_type.type_list_no_parens} )"
-                 " outs( {init.ssa_id_list} : {init_type.type_list_no_parens} )"
+                 " ins ( {inarg.ssa_id_list} : {in_type.type_list_no_parens} )"
+                 " outs ( {init.ssa_id_list} : {init_type.type_list_no_parens} )"
                  " permutation = [ {permutation.ssa_use_list} ]")]
 
 
