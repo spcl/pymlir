@@ -170,7 +170,7 @@ def test_matvec():
 def test_transpose():
     assert_roundtrip_equivalence("""module {
   func.func @transpose(%arg0: memref<?x?xf16>, %arg1: memref<?x?xf16>) {
-    %transpose = linalg.transpose ins( %arg0 : memref<?x?xf16> ) outs( %arg1 : memref<?x?xf16> ) permutation = [ 1, 0 ]
+    %transpose = linalg.transpose ins ( %arg0 : memref<?x?xf16> ) outs ( %arg1 : memref<?x?xf16> ) permutation = [ 1, 0 ]
     return
   }
 }""")
