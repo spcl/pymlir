@@ -79,8 +79,8 @@ class DialectElement(astnodes.Node):
             for fname, ftype in sfields:
                 syntax = syntax.replace('{%s.%s}' % (fname, ftype), ftype)
             # Replace back braces
-            syntax = syntax.replace('{LBRACE}', '{')
-            syntax = syntax.replace('{RBRACE}', '}')
+            syntax = syntax.replace('{LBRACE}', '"{"')
+            syntax = syntax.replace('{RBRACE}', '"}"')
             lark_exprs.append(syntax)
 
         cls._fields_ = list(fields)
