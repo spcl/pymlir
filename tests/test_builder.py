@@ -1,4 +1,3 @@
-import sys
 from mlir import parse_string
 from mlir.builder import IRBuilder
 from mlir.builder import Reads, Writes, Isa

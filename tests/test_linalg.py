@@ -1,6 +1,4 @@
-import sys
 import mlir
-from mlir.dialects.func import func 
 
 # All source strings have been taken from MLIR's codebase.
 # See llvm-project/mlir/test/Dialect/Linalg

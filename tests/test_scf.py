@@ -1,6 +1,4 @@
-import sys
 import mlir
-from mlir.dialects.func import func 
 
 # All source strings taken from examples in https://mlir.llvm.org/docs/Dialects/SCFDialect/
 
