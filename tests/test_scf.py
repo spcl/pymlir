@@ -50,5 +50,7 @@ def test_scf_while():
 }""")
 
 
-from pytest import main
-    main([__file__])
+if __name__ == '__main__':
+    test_scf_for()
+    test_scf_if()
+    test_scf_while()

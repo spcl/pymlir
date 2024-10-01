@@ -103,9 +103,7 @@ def test_build_with_queries():
     assert index(Reads(a0)) == 2
 
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        exec(sys.argv[1])
-    else:
-        from pytest import main
-        main([__file__])
+if __name__ == '__main__':
+    test_saxpy_builder()
+    test_query()
+    test_build_with_queries()
