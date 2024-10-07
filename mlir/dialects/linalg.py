@@ -21,11 +21,11 @@ class LinalgBatchMatmul(DialectOp):
     out_type: Optional[mast.Type] = None
 
     _syntax_ = [("linalg.batch_matmul"
-                 " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
-                 " outs( {c_id.ssa_id} : {c_type.type} )"),
+                 " ins ( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
+                 " outs ( {c_id.ssa_id} : {c_type.type} )"),
                 ("linalg.batch_matmul"
-                 " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
-                 " init( {c_id.ssa_id} : {c_type.type} ) -> {out_type.type}")]
+                 " ins ( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
+                 " init ( {c_id.ssa_id} : {c_type.type} ) -> {out_type.type}")]
 
 
 @dataclass
@@ -38,8 +38,8 @@ class LinalgConvW(DialectOp):
     out_type: mast.Type
 
     _syntax_ = [("linalg.conv_1d"
-                 " ins( {in_id.ssa_id} , {filter_id.ssa_id} : {in_type.type} , {filter_type.type} )"
-                 " outs( {out_id.ssa_id} : {out_type.type} )")]
+                 " ins ( {in_id.ssa_id} , {filter_id.ssa_id} : {in_type.type} , {filter_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )")]
 
 
 @dataclass
@@ -52,8 +52,8 @@ class LinalgConvHW(DialectOp):
     out_type: mast.Type
 
     _syntax_ = [("linalg.conv_2d"
-                 " ins( {in_id.ssa_id} , {filter_id.ssa_id} : {in_type.type} , {filter_type.type} )"
-                 " outs( {out_id.ssa_id} : {out_type.type} )")]
+                 " ins ( {in_id.ssa_id} , {filter_id.ssa_id} : {in_type.type} , {filter_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )")]
 
 
 @dataclass
@@ -66,8 +66,8 @@ class LinalgConvDHW(DialectOp):
     out_type: mast.Type
 
     _syntax_ = [("linalg.conv_3d"
-                 " ins( {in_id.ssa_id} , {filter_id.ssa_id} : {in_type.type} , {filter_type.type} )"
-                 " outs( {out_id.ssa_id} : {out_type.type} )")]
+                 " ins ( {in_id.ssa_id} , {filter_id.ssa_id} : {in_type.type} , {filter_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )")]
 
 
 @dataclass
@@ -110,8 +110,8 @@ class LinalgDot(DialectOp):
     out_type: mast.Type
 
     _syntax_ = [("linalg.dot"
-                 " ins( {in_a_id.ssa_id} , {in_b_id.ssa_id} : {in_a_type.type} , {in_b_type.type} )"
-                 " outs( {out_id.ssa_id} : {out_type.type} )")]
+                 " ins ( {in_a_id.ssa_id} , {in_b_id.ssa_id} : {in_a_type.type} , {in_b_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )")]
 
 
 @dataclass
@@ -124,19 +124,19 @@ class LinalgFill(DialectOp):
     attr: Optional[mast.Attribute] = None
 
     _syntax_ = [("linalg.fill"
-                 " ins( {in_id.ssa_id} : {in_type.type} )"
-                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 " ins ( {in_id.ssa_id} : {in_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )"
                  " {attr.attribute_value}"),
                 ("linalg.fill"
-                 " ins( {in_id.ssa_id} : {in_type.type} )"
-                 " outs( {out_id.ssa_id} : {out_type.type} )"),
+                 " ins ( {in_id.ssa_id} : {in_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )"),
                 ("linalg.fill"
-                 " ins( {in_id.ssa_id} : {in_type.type} )"
-                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 " ins ( {in_id.ssa_id} : {in_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )"
                  " {attr.attribute_value} -> {res_type.type}"),
                 ("linalg.fill"
-                 " ins( {in_id.ssa_id} : {in_type.type} )"
-                 " outs( {out_id.ssa_id} : {out_type.type} )"
+                 " ins ( {in_id.ssa_id} : {in_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )"
                  " -> {res_type.type}")]
 
 
@@ -153,16 +153,16 @@ class LinalgGeneric(DialectOp):
     attr: Optional[mast.Attribute] = None
 
     _syntax_ = [("linalg.generic {attr.attribute_value} "
-                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
-                 " outs( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
+                 " ins ( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " outs ( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
                  " {region.region}"),
                 ("linalg.generic {attr.attribute_value} "
-                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
-                 " outs( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
+                 " ins ( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " outs ( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
                  " {region.region} -> {out_type.type}"),
                 ("linalg.generic {attr.attribute_value} "
-                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
-                 " init( {init_args.ssa_id_list} : {init_types.type_list_no_parens} )"
+                 " ins ( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " init ( {init_args.ssa_id_list} : {init_types.type_list_no_parens} )"
                  " {region.region} -> {out_type.type}")]
 
 
@@ -179,12 +179,12 @@ class LinalgIndexedGeneric(DialectOp):
     attr: Optional[mast.Attribute] = None
 
     _syntax_ = [("linalg.indexed_generic {attr.attribute_value} "
-                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
-                 " outs( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
+                 " ins ( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " outs ( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
                  " {region.region}"),
                 ("linalg.indexed_generic {attr.attribute_value} "
-                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
-                 " init( {init_args.ssa_id_list} : {init_types.type_list_no_parens} )"
+                 " ins ( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " init ( {init_args.ssa_id_list} : {init_types.type_list_no_parens} )"
                  " {region.region} -> {out_type.type}")]
 
 
@@ -213,8 +213,8 @@ class LinalgReduce(DialectOp):
     args: List[Tuple[mast.SsaId, mast.Type]]
 
     _syntax_ = [("linalg.reduce"
-                 " ins( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
-                 " outs( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
+                 " ins ( {inargs.ssa_id_list} : {in_types.type_list_no_parens} )"
+                 " outs ( {outargs.ssa_id_list} : {out_types.type_list_no_parens} )"
                  " dimensions = [ {dimensions.ssa_use_list} ]"
                  " ( {args.argument_list} ) {region.region}")]
 
@@ -299,14 +299,14 @@ class LinalgMatmul(DialectOp):
     out_type: Optional[mast.Type] = None
 
     _syntax_ = [("linalg.matmul"
-                 " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
-                 " outs( {c_id.ssa_id} : {c_type.type} )"),
+                 " ins ( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
+                 " outs ( {c_id.ssa_id} : {c_type.type} )"),
                 ("linalg.matmul"
-                 " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
-                 " outs( {c_id.ssa_id} : {c_type.type} ) -> {out_type.type}"),
+                 " ins ( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
+                 " outs ( {c_id.ssa_id} : {c_type.type} ) -> {out_type.type}"),
                 ("linalg.matmul"
-                 " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
-                 " init( {c_id.ssa_id} : {c_type.type} )  -> {out_type.type}")]
+                 " ins ( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
+                 " init ( {c_id.ssa_id} : {c_type.type} )  -> {out_type.type}")]
 
 
 @dataclass
@@ -319,8 +319,8 @@ class LinalgMatvec(DialectOp):
     c_type: mast.Type
 
     _syntax_ = [("linalg.matvec"
-                 " ins( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
-                 " outs( {c_id.ssa_id} : {c_type.type} )")]
+                 " ins ( {a_id.ssa_id} , {b_id.ssa_id} : {a_type.type} , {b_type.type} )"
+                 " outs ( {c_id.ssa_id} : {c_type.type} )")]
 
 
 @dataclass
