@@ -76,6 +76,16 @@ def test_fill():
 }""")
 
 
+def test_fill_rng_2d():
+    assert_roundtrip_equivalence("""module {
+  func.func @fill_rng_2d(%min: f64, %max: f64, %seed: i32, %O: tensor<16x32xf32>) -> tensor<16x32xf32> {
+    %0 = linalg.fill_rng_2d ins ( %min , %max , %seed : f64 , f64 , i32 ) outs ( %O : tensor<16x32xf32> ) -> tensor<16x32xf32>
+    %1 = linalg.fill_rng_2d ins ( %min , %max , %seed : f64 , f64 , i32 ) outs ( %O : tensor<16x32xf32> )
+    return %1 : tensor<16x32xf32>
+  }
+}""")
+
+
 def test_generic():
     assert_roundtrip_equivalence("""module {
   func.func @example(%A: memref<?x?xf64>, %B: memref<?x?xf64>, %C: memref<?x?xf64>) {

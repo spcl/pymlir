@@ -139,6 +139,35 @@ class LinalgFill(DialectOp):
                  " outs( {out_id.ssa_id} : {out_type.type} )"
                  " -> {res_type.type}")]
 
+ 
+@dataclass
+class FillRng2DOp(DialectOp):
+    min_id: mast.SsaId
+    min_type: mast.Type
+    max_id: mast.SsaId
+    max_type: mast.Type
+    seed_id: mast.SsaId
+    seed_type: mast.Type
+    out_id: mast.SsaId
+    out_type: mast.Type
+    res_type: Optional[mast.Type] = None
+    attr: Optional[mast.Attribute] = None
+
+    _syntax_ = [("linalg.fill_rng_2d"
+                 " ins ( {min_id.ssa_id} , {max_id.ssa_id} , {seed_id.ssa_id} : {min_type.type} , {max_type.type} , {seed_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )"),
+                ("linalg.fill_rng_2d"
+                 " ins ( {min_id.ssa_id} , {max_id.ssa_id} , {seed_id.ssa_id} : {min_type.type} , {max_type.type} , {seed_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )"
+                 " {attr.attribute_value}"),
+                ("linalg.fill_rng_2d"
+                 " ins ( {min_id.ssa_id} , {max_id.ssa_id} , {seed_id.ssa_id} : {min_type.type} , {max_type.type} , {seed_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} ) -> {res_type.type}"),
+                ("linalg.fill_rng_2d"
+                 " ins ( {min_id.ssa_id} , {max_id.ssa_id} , {seed_id.ssa_id} : {min_type.type} , {max_type.type} , {seed_type.type} )"
+                 " outs ( {out_id.ssa_id} : {out_type.type} )"
+                 " {attr.attribute_value} -> {res_type.type}")]
+
 
 @dataclass
 class LinalgGeneric(DialectOp):
