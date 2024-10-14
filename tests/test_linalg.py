@@ -13,10 +13,10 @@ def assert_roundtrip_equivalence(source):
 def test_batch_matmul():
     assert_roundtrip_equivalence("""module {
   func.func @named_ops(%a3: memref<?x?x?xf32>, %b3: memref<?x?x?xf32>, %c3: memref<?x?x?xf32>, %ta3: tensor<?x?x?xf32>, %tb3: tensor<?x?x?xf32>, %tc3: tensor<?x?x?xf32>) -> (tensor<?x?x?xf32>, tensor<?x?x?xf32>) {
-    linalg.batch_matmul ins( %a3 , %b3 : memref<?x?x?xf32> , memref<?x?x?xf32> ) outs( %c3 : memref<?x?x?xf32> )
-    linalg.batch_matmul ins( %ta3 , %tb3 : tensor<?x?x?xf32> , tensor<?x?x?xf32> ) outs( %c3 : memref<?x?x?xf32> )
-    %res1 = linalg.batch_matmul ins( %ta3 , %tb3 : tensor<?x?x?xf32> , tensor<?x?x?xf32> ) init( %tc3 : tensor<?x?x?xf32> ) -> tensor<?x?x?xf32>
-    %res2 = linalg.batch_matmul ins( %ta3 , %b3 : tensor<?x?x?xf32> , memref<?x?x?xf32> ) init( %tc3 : tensor<?x?x?xf32> ) -> tensor<?x?x?xf32>
+    linalg.batch_matmul ins ( %a3 , %b3 : memref<?x?x?xf32> , memref<?x?x?xf32> ) outs ( %c3 : memref<?x?x?xf32> )
+    linalg.batch_matmul ins ( %ta3 , %tb3 : tensor<?x?x?xf32> , tensor<?x?x?xf32> ) outs ( %c3 : memref<?x?x?xf32> )
+    %res1 = linalg.batch_matmul ins ( %ta3 , %tb3 : tensor<?x?x?xf32> , tensor<?x?x?xf32> ) init ( %tc3 : tensor<?x?x?xf32> ) -> tensor<?x?x?xf32>
+    %res2 = linalg.batch_matmul ins ( %ta3 , %b3 : tensor<?x?x?xf32> , memref<?x?x?xf32> ) init ( %tc3 : tensor<?x?x?xf32> ) -> tensor<?x?x?xf32>
     return %res1, %res2 : tensor<?x?x?xf32>, tensor<?x?x?xf32>
   }
 }""")
@@ -25,15 +25,15 @@ def test_batch_matmul():
 def test_conv():
     assert_roundtrip_equivalence("""module {
   func.func @conv1d_no_symbols(%in: memref<?xf32>, %filter: memref<?xf32>, %out: memref<?xf32>) {
-    linalg.conv_1d ins( %in , %filter : memref<?xf32> , memref<?xf32> ) outs( %out : memref<?xf32> )
+    linalg.conv_1d ins ( %in , %filter : memref<?xf32> , memref<?xf32> ) outs ( %out : memref<?xf32> )
     return
   }
   func.func @conv2d_no_symbols(%in: memref<?x?xf32>, %filter: memref<?x?xf32>, %out: memref<?x?xf32>) {
-    linalg.conv_2d ins( %in , %filter : memref<?x?xf32> , memref<?x?xf32> ) outs( %out : memref<?x?xf32> )
+    linalg.conv_2d ins ( %in , %filter : memref<?x?xf32> , memref<?x?xf32> ) outs ( %out : memref<?x?xf32> )
     return
   }
   func.func @conv3d_no_symbols(%in: memref<?x?x?xf32>, %filter: memref<?x?x?xf32>, %out: memref<?x?x?xf32>) {
-    linalg.conv_3d ins( %in , %filter : memref<?x?x?xf32> , memref<?x?x?xf32> ) outs( %out : memref<?x?x?xf32> )
+    linalg.conv_3d ins ( %in , %filter : memref<?x?x?xf32> , memref<?x?x?xf32> ) outs ( %out : memref<?x?x?xf32> )
     return
   }
 }""")
@@ -60,7 +60,7 @@ def test_dot():
     %1 = view %arg0 [ %c0 ] [ %M ] : memref<?xi8> to memref<?xf32>
     %2 = view %arg0 [ %c0 ] [ %M ] : memref<?xi8> to memref<?xf32>
     %3 = view %arg0 [ %c0 ] [  ] : memref<?xi8> to memref<f32>
-    linalg.dot ins( %1 , %2 : memref<?xf32> , memref<?xf32> ) outs( %3 : memref<f32> )
+    linalg.dot ins ( %1 , %2 : memref<?xf32> , memref<?xf32> ) outs ( %3 : memref<f32> )
     return
   }
 }""")
@@ -69,8 +69,8 @@ def test_dot():
 def test_fill():
     assert_roundtrip_equivalence("""module {
   func.func @fill_view(%arg0: f32, %arg1: tensor<?x?xf32>) {
-    linalg.fill ins( %arg0 : f32 ) outs( %arg1 : tensor<?x?xf32> ) -> tensor<?x?xf32>
-    linalg.fill ins( %arg0 : f32 ) outs( %arg1 : tensor<?x?xf32> )
+    linalg.fill ins ( %arg0 : f32 ) outs ( %arg1 : tensor<?x?xf32> ) -> tensor<?x?xf32>
+    linalg.fill ins ( %arg0 : f32 ) outs ( %arg1 : tensor<?x?xf32> )
     return
   }
 }""")
@@ -79,7 +79,7 @@ def test_fill():
 def test_generic():
     assert_roundtrip_equivalence("""module {
   func.func @example(%A: memref<?x?xf64>, %B: memref<?x?xf64>, %C: memref<?x?xf64>) {
-    linalg.generic {indexing_maps = [affine_map<(i, j) -> (i, j)>, affine_map<(i, j) -> (i, j)>, affine_map<(i, j) -> (i, j)>], iterator_types = ["parallel", "parallel"]}  ins( %A, %B : memref<?x?xf64>, memref<?x?xf64> ) outs( %C : memref<?x?xf64> ) {
+    linalg.generic {indexing_maps = [affine_map<(i, j) -> (i, j)>, affine_map<(i, j) -> (i, j)>, affine_map<(i, j) -> (i, j)>], iterator_types = ["parallel", "parallel"]}  ins ( %A, %B : memref<?x?xf64>, memref<?x?xf64> ) outs ( %C : memref<?x?xf64> ) {
       ^bb0 (%a: f64, %b: f64, %c: f64):
         %c0 = constant 3.14 : f64
         %d = addf %a , %b : f64
@@ -93,7 +93,7 @@ def test_generic():
 def test_indexed_generic():
     assert_roundtrip_equivalence("""module {
   func.func @indexed_generic_region(%arg0: memref<?x?xf32, strided<[?, 1], offset: ?>>, %arg1: memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>, %arg2: memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>) {
-    linalg.indexed_generic {args_in = 1, args_out = 2, iterator_types = ["parallel", "parallel", "parallel"], indexing_maps = [affine_map<(i, j, k) -> (i, j)>, affine_map<(i, j, k) -> (i, j, k)>, affine_map<(i, j, k) -> (i, k, j)>], library_call = "some_external_function_name_2", doc = "B(i,j,k), C(i,k,j) = foo(A(i, j) * B(i,j,k), i * j * k + C(i,k,j))"}  ins( %arg0 : memref<?x?xf32, strided<[?, 1], offset: ?>> ) outs( %arg1, %arg2 : memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>, memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>> ) {
+    linalg.indexed_generic {args_in = 1, args_out = 2, iterator_types = ["parallel", "parallel", "parallel"], indexing_maps = [affine_map<(i, j, k) -> (i, j)>, affine_map<(i, j, k) -> (i, j, k)>, affine_map<(i, j, k) -> (i, k, j)>], library_call = "some_external_function_name_2", doc = "B(i,j,k), C(i,k,j) = foo(A(i, j) * B(i,j,k), i * j * k + C(i,k,j))"}  ins ( %arg0 : memref<?x?xf32, strided<[?, 1], offset: ?>> ) outs ( %arg1, %arg2 : memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>>, memref<?x?x?xf32, strided<[?, ?, 1], offset: ?>> ) {
       ^bb0 (%i: index, %j: index, %k: index, %a: f32, %b: f32, %c: f32):
         %result_1 = mulf %a , %b : f32
         %ij = addi %i , %j : index
@@ -110,7 +110,7 @@ def test_indexed_generic():
 def test_reduce():
     assert_roundtrip_equivalence("""module {
   func.func @reduce(%arg0: tensor<16x32x64xf32>, %arg1: tensor<16x64xf32>) {
-    %reduce = linalg.reduce ins( %arg0 : tensor<16x32x64xf32> ) outs( %arg1 : tensor<16x64xf32> ) dimensions = [ 1 ] ( %in: f32, %out: f32 ) {
+    %reduce = linalg.reduce ins ( %arg0 : tensor<16x32x64xf32> ) outs ( %arg1 : tensor<16x64xf32> ) dimensions = [ 1 ] ( %in: f32, %out: f32 ) {
       %0 = arith.addf %out, %in : f32
       linalg.yield %0 : f32
     }
@@ -146,8 +146,8 @@ def test_matmul():
     %A = view %arg0 [ %c0 ] [ %M, %K ] : memref<?xi8> to memref<?x?xf32>
     %B = view %arg0 [ %c0 ] [ %K, %N ] : memref<?xi8> to memref<?x?xf32>
     %C = view %arg0 [ %c0 ] [ %M, %N ] : memref<?xi8> to memref<?x?xf32>
-    linalg.matmul ins( %A , %B : memref<?x?xf32> , memref<?x?xf32> ) outs( %C : memref<?x?xf32> )
-    linalg.matmul ins( %A , %B : memref<?x?xf32> , memref<?x?xf32> ) outs( %C : memref<?x?xf32> ) -> memref<?x?xf32>
+    linalg.matmul ins ( %A , %B : memref<?x?xf32> , memref<?x?xf32> ) outs ( %C : memref<?x?xf32> )
+    linalg.matmul ins ( %A , %B : memref<?x?xf32> , memref<?x?xf32> ) outs ( %C : memref<?x?xf32> ) -> memref<?x?xf32>
     return
   }
 }""")
@@ -161,7 +161,16 @@ def test_matvec():
     %2 = view %arg0 [ %c0 ] [ %M, %N ] : memref<?xi8> to memref<?x?xf32>
     %3 = view %arg0 [ %c0 ] [ %M ] : memref<?xi8> to memref<?xf32>
     %4 = view %arg0 [ %c0 ] [ %N ] : memref<?xi8> to memref<?xf32>
-    linalg.matvec ins( %2 , %3 : memref<?x?xf32> , memref<?xf32> ) outs( %4 : memref<?xf32> )
+    linalg.matvec ins ( %2 , %3 : memref<?x?xf32> , memref<?xf32> ) outs ( %4 : memref<?xf32> )
+    return
+  }
+}""")
+
+
+def test_transpose():
+    assert_roundtrip_equivalence("""module {
+  func.func @transpose(%arg0: memref<?x?xf16>, %arg1: memref<?x?xf16>) {
+    %transpose = linalg.transpose ins ( %arg0 : memref<?x?xf16> ) outs ( %arg1 : memref<?x?xf16> ) permutation = [ 1, 0 ]
     return
   }
 }""")
