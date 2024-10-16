@@ -1,6 +1,4 @@
-import sys
 import mlir
-from mlir.dialects.func import func 
 
 # All source strings have been taken from MLIR's codebase.
 # See llvm-project/mlir/test/Dialect/Linalg
@@ -186,9 +184,15 @@ def test_transpose():
 }""")
 
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        exec(sys.argv[1])
-    else:
-        from pytest import main
-        main([__file__])
+if __name__ == '__main__':
+    test_batch_matmul()
+    test_conv()
+    test_copy()
+    test_dot()
+    test_fill()
+    test_generic()
+    test_indexed_generic()
+    test_reduce()
+    test_view()
+    test_matmul()
+    test_matvec()

@@ -15,7 +15,6 @@ class CallIndirectOperation(DialectOp):
     func: mast.SymbolRefId
     type: mast.FunctionType
     args: Optional[List[SsaUse]] = None
-    argtypes: Optional[List[mast.Type]] = None
     _syntax_ = ['func.call_indirect {func.symbol_ref_id} () : {type.function_type}',
                 'func.call_indirect {func.symbol_ref_id} ( {args.ssa_use_list} ) : {type.function_type}']
 
@@ -25,9 +24,8 @@ class CallOperation(DialectOp):
     func: mast.SymbolRefId
     type: mast.FunctionType
     args: Optional[List[SsaUse]] = None
-    argtypes: Optional[List[mast.Type]] = None
     _syntax_ = ['func.call {func.symbol_ref_id} () : {type.function_type}',
-                'func.call {func.symbol_ref_id} ( {args.ssa_use_list} ) : {argtypes.function_type}']
+                'func.call {func.symbol_ref_id} ( {args.ssa_use_list} ) : {type.function_type}']
 
 @dataclass
 class ConstantOperation(DialectOp):
