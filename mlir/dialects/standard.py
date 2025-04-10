@@ -97,27 +97,10 @@ class ExtractElementOperation(DialectOp):
 
 
 @dataclass
-class LoadOperation(DialectOp):
-    arg: SsaUse
-    index: List[SsaUse]
-    type: mast.MemRefType
-    _syntax_ = 'load {arg.ssa_use} [ {index.ssa_use_list} ] : {type.memref_type}'
-
-
-@dataclass
 class SplatOperation(DialectOp):
     arg: SsaUse
     type: Union[mast.VectorType, mast.TensorType]
     _syntax_ = 'splat {arg.ssa_use} : {type.type}'  # (vector_type | tensor_type)
-
-
-@dataclass
-class StoreOperation(DialectOp):
-    addr: SsaUse
-    ref: SsaUse
-    index: List[SsaUse]
-    type: mast.MemRefType
-    _syntax_ = 'store {addr.ssa_use} , {ref.ssa_use} [ {index.ssa_use_list} ] : {type.memref_type}'
 
 
 @dataclass
