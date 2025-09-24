@@ -14,11 +14,11 @@ def parser(parser: Optional[Parser] = None) -> Parser:
 _code = '''
 module {
   func.func @test0(%arg0: index, %arg1: index) {
-    %0 = alloc() : memref<100x100xf32>
-    %1 = alloc() : memref<100x100xf32, 2>
-    %2 = alloc() : memref<1xi32>
-    %c0 = constant 0 : index
-    %c64 = constant 64 : index
+    %0 = memref.alloc() : memref<100x100xf32>
+    %1 = memref.alloc() : memref<100x100xf32, 2>
+    %2 = memref.alloc() : memref<1xi32>
+    %c0 = arith.constant 0 : index
+    %c64 = arith.constant 64 : index
     affine.for %arg2 = 0 to 10 {
       affine.for %arg3 = 0 to 10 {
         affine.dma_start %0[%arg2, %arg3], %1[%arg2, %arg3], %2[%c0], %c64 : memref<100x100xf32>, memref<100x100xf32, 2>, memref<1xi32>
@@ -30,10 +30,10 @@ module {
   func.func @test1(%arg0: index, %arg1: index) {
     affine.for %arg2 = 0 to 10 {
       affine.for %arg3 = 0 to 10 {
-        %c0 = constant 0 : index
-        %c64 = constant 64 : index
-        %c128 = constant 128 : index
-        %c256 = constant 256 : index
+        %c0 = arith.constant 0 : index
+        %c64 = arith.constant 64 : index
+        %c128 = arith.constant 128 : index
+        %c256 = arith.constant 256 : index
         affine.dma_start %0[%arg2, %arg3], %1[%arg2, %arg3], %2[%c0], %c64, %c128, %c256 : memref<100x100xf32>, memref<100x100xf32, 2>, memref<1xi32>
         affine.dma_wait %2[%c0], %c64 : memref<1xi32>
       }
@@ -41,7 +41,7 @@ module {
     return
   }
   func.func @test2(%arg0: index, %arg1: index) {
-    %0 = alloc() : memref<100x100xf32>
+    %0 = memref.alloc() : memref<100x100xf32>
   }
 }
 '''

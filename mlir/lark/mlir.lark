@@ -23,7 +23,7 @@ negated_integer_literal : "-" integer_literal
 ?posneg_integer_literal : integer_literal | negated_integer_literal
 float_literal : /[-+]?[0-9]+[.][0-9]*([eE][-+]?[0-9]+)?/
 string_literal  : ESCAPED_STRING
-constant_literal : bool_literal | integer_literal | float_literal | string_literal
+constant_literal : bool_literal | posneg_integer_literal | float_literal | string_literal
 
 // Identifier syntax
 bare_id : (letter| underscore) (letter|digit|underscore|id_chars)*
@@ -172,7 +172,7 @@ custom_operation  : bare_id "." bare_id optional_ssa_use_list trailing_type
 
 // Final operation definition
 // NOTE: "pymlir_dialect_ops" is defined externally by pyMLIR
-operation         : optional_op_result_list (pymlir_dialect_ops | custom_operation | generic_operation | module | generic_module | function) optional_trailing_loc
+operation         : optional_op_result_list (pymlir_dialect_ops | custom_operation | generic_operation | module | generic_module) optional_trailing_loc
 
 // ----------------------------------------------------------------------
 // Blocks and regions
@@ -236,7 +236,7 @@ function_result_list_parens : ("(" ")") | ("(" function_result_list_no_parens ")
 
 // Definition
 module : "module" optional_symbol_ref_id optional_func_mod_attrs region optional_trailing_loc
-function : "func.func" symbol_ref_id "(" optional_arg_list ")" optional_fn_result_list optional_func_mod_attrs optional_fn_body optional_trailing_loc
+// function : "func.func" symbol_ref_id "(" optional_arg_list ")" optional_fn_result_list optional_func_mod_attrs optional_fn_body optional_trailing_loc
 generic_module : string_literal "(" optional_arg_list ")" "(" region ")" optional_attr_dict trailing_type optional_trailing_loc
 
 // ----------------------------------------------------------------------
@@ -315,9 +315,9 @@ attribute_alias_def : attribute_alias "=" attribute_value
 // Structure of an MLIR parse-able string
 
 definition_list              : definition*
-function_list                : function*
+// function_list                : function*
 module_list                  : (module | generic_module)*
-definition_and_function_list : definition_list function_list
+definition_and_function_list : definition_list // function_list
 definition_and_module_list   : definition_list module_list
 
 mlir_file: definition_and_function_list*       -> only_functions_and_definitions_file

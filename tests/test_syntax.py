@@ -46,7 +46,7 @@ def test_trailing_loc(parser: Optional[Parser] = None):
     code = '''
     module {
       func.func @myfunc() {
-        %c:2 = addf %a, %b : f32 loc("test_syntax.py":36:59)
+        %c:2 = arith.addf %a, %b : f32 loc("test_syntax.py":36:59)
       }
     } loc("hi.mlir":30:1)
     '''
@@ -86,12 +86,12 @@ def test_functions(parser: Optional[Parser] = None):
     code = '''
     module {
       func.func @myfunc_a() {
-        %c:2 = addf %a, %b : f32
+        %c:2 = arith.addf %a, %b : f32
       }
       func.func @myfunc_b() {
-        %d:2 = addf %a, %b : f64
+        %d:2 = arith.addf %a, %b : f64
         ^e:
-        %f:2 = addf %d, %d : f64
+        %f:2 = arith.addf %d, %d : f64
       }
     }'''
     parser = parser or Parser()
@@ -135,17 +135,17 @@ func.func @empty() {
   %0 = affine.min affine_map<(d0)[s0] -> (1000, d0 + 512, s0)> (%arg0)[%arg1]
 }
 func.func @valid_symbols(%arg0: index, %arg1: index, %arg2: index) {
-  %c0 = constant 1 : index
-  %c1 = constant 0 : index
-  %b = alloc()[%N] : memref<4x4xf32, (d0, d1)[s0] -> (d0, d0 + d1 + s0 floordiv 2)>
-  %0 = alloc(%arg0, %arg1) : memref<?x?xf32>
+  %c0 = arith.constant 1 : index
+  %c1 = arith.constant 0 : index
+  %b = memref.alloc()[%N] : memref<4x4xf32, (d0, d1)[s0] -> (d0, d0 + d1 + s0 floordiv 2)>
+  %0 = memref.alloc(%arg0, %arg1) : memref<?x?xf32>
   affine.for %arg3 = %arg1 to %arg2 step 768 {
-    %13 = dim %0, %c1 : memref<?x?xf32>
+    %13 = memref.dim %0, %c1 : memref<?x?xf32>
     affine.for %arg4 = 0 to %13 step 264 {
-      %18 = dim %0, %c0 : memref<?x?xf32>
-      %20 = subview %0[%c0, %c0][%18,%arg4][%c1,%c1] : memref<?x?xf32>
+      %18 = memref.dim %0, %c0 : memref<?x?xf32>
+      %20 = memref.subview %0[%c0, %c0][%18,%arg4][%c1,%c1] : memref<?x?xf32>
                           to memref<?x?xf32, (d0, d1)[s0, s1, s2] -> (d0 * s1 + d1 * s2 + s0)>
-      %24 = dim %20, %c0 : memref<?x?xf32, (d0, d1)[s0, s1, s2] -> (d0 * s1 + d1 * s2 + s0)>
+      %24 = memref.dim %20, %c0 : memref<?x?xf32, (d0, d1)[s0, s1, s2] -> (d0 * s1 + d1 * s2 + s0)>
       affine.for %arg5 = 0 to %24 step 768 {
         "foo"() : () -> ()
       }
@@ -210,8 +210,8 @@ def test_generic_dialect_std(parser: Optional[Parser] = None):
 "module"() ( {
   "func.func"() ( {
   ^bb0(%arg0: i32, %arg1: i32):  // no predecessors
-    %0 = "std.addi"(%arg1, %arg0) : (i32, i32) -> i32
-    "std.return"(%0) : (i32) -> ()
+    %0 = "arith.addi"(%arg1, %arg0) : (i32, i32) -> i32
+    "return"(%0) : (i32) -> ()
   }) {sym_name = "mlir_entry", type = (i32, i32) -> i32} : () -> ()
 }) : () -> ()
     '''
@@ -224,13 +224,13 @@ def test_generic_dialect_std_cond_br(parser: Optional[Parser] = None):
 "module"() ( {
 "func.func"() ( {
 ^bb0(%arg0: i32):  // no predecessors
-    %c1_i32 = "std.constant"() {value = 1 : i32} : () -> i32
-    %0 = "std.cmpi"(%arg0, %c1_i32) {predicate = 3 : i64} : (i32, i32) -> i1
-    "std.cond_br"(%0)[^bb1, ^bb2] {operand_segment_sizes = dense<[1, 0, 0]> : vector<3xi32>} : (i1) -> ()
+    %c1_i32 = "arith.constant"() {value = 1 : i32} : () -> i32
+    %0 = "arith.cmpi"(%arg0, %c1_i32) {predicate = 3 : i64} : (i32, i32) -> i1
+    "cf.cond_br"(%0)[^bb1, ^bb2] {operand_segment_sizes = dense<[1, 0, 0]> : vector<3xi32>} : (i1) -> ()
 ^bb1:  // pred: ^bb0
-    "std.return"(%c1_i32) : (i32) -> ()
+    "return"(%c1_i32) : (i32) -> ()
 ^bb2:  // pred: ^bb0
-    "std.return"(%c1_i32) : (i32) -> ()
+    "return"(%c1_i32) : (i32) -> ()
 }) {sym_name = "mlir_entry", type = (i32) -> i32} : () -> ()
 }) : () -> ()
     '''
@@ -259,26 +259,26 @@ def test_generic_dialect_generic_op(parser: Optional[Parser] = None):
   "func.func"() ( {
   ^bb0(%arg0: i32, %arg1: i32):  // no predecessors
     %0 = "generic_op_with_region"(%arg0, %arg1) ( {
-      %1 = "std.addi"(%arg1, %arg0) : (i32, i32) -> i32
-      "std.return"(%1) : (i32) -> ()
+      %1 = "arith.addi"(%arg1, %arg0) : (i32, i32) -> i32
+      "return"(%1) : (i32) -> ()
     }) : (i32, i32) -> i32
     %2 = "generic_op_with_regions"(%0, %arg0) ( {
-      %3 = "std.subi"(%0, %arg0) : (i32, i32) -> i32
-      "std.return"(%3) : (i32) -> ()
+      %3 = "arith.subi"(%0, %arg0) : (i32, i32) -> i32
+      "return"(%3) : (i32) -> ()
     }, {
-      %4 = "std.addi"(%3, %arg0) : (i32, i32) -> i32
-      "std.return"(%4) : (i32) -> ()
+      %4 = "arith.addi"(%3, %arg0) : (i32, i32) -> i32
+      "return"(%4) : (i32) -> ()
     }) : (i32, i32) -> i32
     %5 = "generic_op_with_region_and_attr"(%2, %arg0) ( {
-      %6 = "std.subi"(%2, %arg0) : (i32, i32) -> i32
-      "std.return"(%6) : (i32) -> ()
+      %6 = "arith.subi"(%2, %arg0) : (i32, i32) -> i32
+      "return"(%6) : (i32) -> ()
     }) {attr = "string attribute"} : (i32, i32) -> i32
     %7 = "generic_op_with_region_and_successor"(%5, %arg0)[^bb1] ( {
-      %8 = "std.addi"(%5, %arg0) : (i32, i32) -> i32
-      "std.br"(%8)[^bb1] : (i32) -> ()
+      %8 = "arith.addi"(%5, %arg0) : (i32, i32) -> i32
+      "cf.br"(%8)[^bb1] : (i32) -> ()
     }) {attr = "string attribute"} : (i32, i32) -> i32
   ^bb1(%ret: i32):
-    "std.return"(%ret) : (i32) -> ()
+    "return"(%ret) : (i32) -> ()
   }) {sym_name = "mlir_entry", type = (i32, i32) -> i32} : () -> ()
 }) : () -> ()
     '''

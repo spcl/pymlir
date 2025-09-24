@@ -1,7 +1,8 @@
 """ MLIR IR Builder."""
 
 import mlir.astnodes as mast
-import mlir.dialects.standard as std
+import mlir.dialects.arith as arith
+import mlir.dialects.memref as memref
 import mlir.dialects.affine as affine
 import mlir.dialects.func as func 
 from typing import Optional, Tuple, Union, List, Any
@@ -436,28 +437,28 @@ class IRBuilder:
 
     def addf(self, op_a: mast.SsaId, op_b: mast.SsaId, type: mast.Type,
              name: Optional[str] = None):
-        op = std.AddfOperation(match=0, operand_a=op_a, operand_b=op_b, type=type)
+        op = arith.AddFOperation(match=0, operand_a=op_a, operand_b=op_b, type=type)
         return self._insert_op_in_block([name], op)
 
     def mulf(self, op_a: mast.SsaId, op_b: mast.SsaId, type: mast.Type,
              name: Optional[str] = None):
-        op = std.MulfOperation(match=0, operand_a=op_a, operand_b=op_b, type=type)
+        op = arith.MulFOperation(match=0, operand_a=op_a, operand_b=op_b, type=type)
         return self._insert_op_in_block([name], op)
 
     def dim(self, memref_or_tensor: mast.SsaId, index: mast.SsaId,
             memref_type: Union[mast.MemRefType, mast.TensorType],
             name: Optional[str] = None):
-        op = std.DimOperation(match=0, operand=memref_or_tensor, index=index,
+        op = memref.DimOperation(match=0, operand=memref_or_tensor, index=index,
                               type=memref_type)
         return self._insert_op_in_block([name], op)
 
     def index_constant(self, value: int, name: Optional[str] = None):
-        op = std.ConstantOperation(match=0, value=value, type=mast.IndexType())
+        op = arith.ConstantOperation(match=0, value=value, type=mast.IndexType())
         return self._insert_op_in_block([name], op)
 
     def float_constant(self, value: float, type: mast.FloatType,
                        name: Optional[str] = None):
-        op = std.ConstantOperation(match=0, value=value, type=type)
+        op = arith.ConstantOperation(match=0, value=value, type=type)
         return self._insert_op_in_block([name], op)
 
     # }}}

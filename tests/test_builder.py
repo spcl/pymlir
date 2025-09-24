@@ -2,7 +2,7 @@ from mlir import parse_string
 from mlir.builder import IRBuilder
 from mlir.builder import Reads, Writes, Isa
 from mlir.dialects.affine import AffineLoadOp
-from mlir.dialects.standard import AddfOperation
+from mlir.dialects.arith import AddFOperation
 
 
 def test_saxpy_builder():
@@ -39,14 +39,14 @@ def test_saxpy_builder():
 def test_query():
     block = parse_string("""
 func.func @saxpy(%a : f64, %x : memref<?xf64>, %y : memref<?xf64>) {
-%c0 = constant 0 : index
-%n = dim %x, %c0 : memref<?xf64>
+%c0 = arith.constant 0 : index
+%n = memref.dim %x, %c0 : memref<?xf64>
 
 affine.for %i = 0 to %n {
   %xi = affine.load %x[%i+1] : memref<?xf64>
-  %axi =  mulf %a, %xi : f64
+  %axi =  arith.mulf %a, %xi : f64
   %yi = affine.load %y[%i] : memref<?xf64>
-  %axpyi = addf %yi, %axi : f64
+  %axpyi = arith.addf %yi, %axi : f64
   affine.store %axpyi, %y[%i] : memref<?xf64>
 }
 return
@@ -60,11 +60,11 @@ return
                    for op in block.body + for_block.body
                    if expr(op)))
 
-    assert query(Writes("%c0")).dump() == "%c0 = constant 0 : index"
+    assert query(Writes("%c0")).dump() == "%c0 = arith.constant 0 : index"
     assert (query(Reads("%y") & Isa(AffineLoadOp)).dump()
             == "%yi = affine.load %y [ %i ] : memref<?xf64>")
 
-    assert query(Reads(c0)).dump() == "%n = dim %x , %c0 : memref<?xf64>"
+    assert query(Reads(c0)).dump() == "%n = memref.dim %x , %c0 : memref<?xf64>"
 
 
 def test_build_with_queries():
@@ -92,7 +92,7 @@ def test_build_with_queries():
     with builder.goto_before(Reads(a0) & Reads(a1)):
         builder.addf(b0, b1, F64)
 
-    with builder.goto_after(Reads(b0) & Isa(AddfOperation)):
+    with builder.goto_after(Reads(b0) & Isa(AddFOperation)):
         builder.addf(c0, c1, F64)
 
     builder.func.ret()

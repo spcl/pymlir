@@ -485,11 +485,15 @@ class OpResult(Node):
         return self.value.dump(indent) + (
             (':' + dump_or_value(self.count, indent)) if self.count else '')
 
+class Op(Node):
+    pass
+
+
 
 @dataclass
 class Operation(Node):
     result_list: List[OpResult]
-    op: "Op"
+    op: Node 
     location: Optional["Location"] = None
 
     def dump(self, indent: int = 0) -> str:
@@ -501,10 +505,6 @@ class Operation(Node):
         if self.location:
             result += ' ' + self.location.dump(indent)
         return result
-
-
-class Op(Node):
-    pass
 
 
 @dataclass

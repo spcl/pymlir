@@ -17,6 +17,13 @@ class SCFConditionOp(DialectOp):
 
 
 @dataclass
+class SCFExecuteRegionOp(DialectOp):
+    out_type: mast.Type
+    body: mast.Region
+    _syntax_ = 'scf.execute_region -> {out_type.type} {body.region}'
+
+
+@dataclass
 class SCFForOp(DialectOp):
     index: mast.SsaId
     begin: mast.SsaId

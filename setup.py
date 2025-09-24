@@ -25,7 +25,7 @@ setup(
     },
     include_package_data=True,
     install_requires=[
-        'lark-parser', 'parse'
+        'lark', 'parse'
     ],
     tests_require=['pytest', 'pytest-cov'],
     test_suite='pytest',

@@ -34,6 +34,20 @@ class ConstantOperation(DialectOp):
     _syntax_ = ['func.constant {value.symbol_ref_id} : {type.type}']
 
 # Note: The 'func.func' operation is defined as 'function' in mlir.lark.
+# not anymore lmfaooooo
+@dataclass
+class FuncOperation(DialectOp):
+    name: mast.SymbolRefId
+    args: Optional[List[mast.NamedArgument]]
+    result_list: Optional[List[mast.OpResult]] | mast.OpResult
+    func_mod_attrs: Optional[mast.AttributeDict]
+    body: Optional[mast.Region]
+    trail: Optional[mast.Location] = None
+
+    _syntax_ = [
+            'func.func {name.symbol_ref_id} ( {args.optional_arg_list} ) {result_list.optional_fn_result_list} {func_mod_attrs.optional_func_mod_attrs} {body.optional_fn_body}',
+            'func.func {name.symbol_ref_id} ( {args.optional_arg_list} ) {result_list.optional_fn_result_list} {func_mod_attrs.optional_func_mod_attrs} {body.optional_fn_body} (loc ({trail.optional_location}))']
+
 
 @dataclass
 class ReturnOperation(DialectOp):
